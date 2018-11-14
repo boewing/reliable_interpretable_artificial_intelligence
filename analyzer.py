@@ -194,10 +194,11 @@ def analyze(nn, LB_N0, UB_N0, label):
                 predicted_label = i
                 break    
     else:
-        inf = bounds[label].contents.inf.contents.val.dbl
+        #for a label to be verified, all upper bounds of the intervals have to be below (<=) the lower bound of the the label interval
+        inf = bounds[label].contents.inf.contents.val.dbl #inf is the lower bound of an interval
         for j in range(output_size):
             if(j!=label):
-                sup = bounds[j].contents.sup.contents.val.dbl
+                sup = bounds[j].contents.sup.contents.val.dbl #sup is the upper bound of an interval
                 if(inf<=sup):
                     predicted_label = label
                     verified_flag = False
