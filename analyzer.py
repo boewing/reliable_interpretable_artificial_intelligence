@@ -123,6 +123,30 @@ def generate_linexpr0(weights, bias, size):
         elina_linexpr0_set_coeff_scalar_double(linexpr0,i,weights[i])
     return linexpr0
 
+def affine_box_layerwise(man,elem,weights, biases):
+
+    """
+    Performs the Affine operation
+    
+    Parameters
+    ----------
+    man : ElinaManagerPtr
+        Pointer to the ElinaManager.
+    elem : ElinaAbstract0Ptr
+        Pointer to the ElinaAbstract0 which dimensions need to be assigned.
+    weights : np Array
+        The weights array.
+    biases : np Array
+        The biases array
+
+    Returns
+    -------
+    res : ElinaAbstract0Ptr
+        Pointer to the new abstract object.
+
+    """
+    pass
+
 def analyze(nn, LB_N0, UB_N0, label):   
     num_pixels = len(LB_N0)
     nn.ffn_counter = 0
@@ -175,7 +199,12 @@ def analyze(nn, LB_N0, UB_N0, label):
     # get bounds for each output neuron
     bounds = elina_abstract0_to_box(man,element)
 
-           
+    # print upper and lower bounds for debug
+    for i in range(output_size):
+        inf = bounds[i].contents.inf.contents.val.dbl
+        sup = bounds[i].contents.sup.contents.val.dbl
+        print("neuron",i,"lower bound",inf,"upper bound",sup)
+
     # if epsilon is zero, try to classify else verify robustness 
     
     verified_flag = True
