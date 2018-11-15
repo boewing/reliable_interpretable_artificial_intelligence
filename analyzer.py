@@ -123,7 +123,7 @@ def generate_linexpr0(weights, bias, size):
         elina_linexpr0_set_coeff_scalar_double(linexpr0,i,weights[i])
     return linexpr0
 
-def affine_box_layerwise(man,elem,weights, biases):
+def affine_box_layerwise(man,element,weights, biases):
 
     """
     Performs the Affine operation
@@ -145,7 +145,32 @@ def affine_box_layerwise(man,elem,weights, biases):
         Pointer to the new abstract object.
 
     """
-    pass
+
+    dims = elina_abstract0_dimension(man,element)
+    num_in_pixels = dims.intdim + dims.realdim
+    num_out_pixels = len(weights)
+ 
+    dimadd = elina_dimchange_alloc(0,num_out_pixels)    
+    for i in range(num_out_pixels):
+        dimadd.contents.dim[i] = num_in_pixels
+    elina_abstract0_add_dimensions(man, True, element, dimadd, False)
+    elina_dimchange_free(dimadd)
+    np.ascontiguousarray(weights, dtype=np.double)
+    np.ascontiguousarray(biases, dtype=np.double)
+    var = num_in_pixels
+    # handle affine layer
+    for i in range(num_out_pixels):
+        tdim= ElinaDim(var)
+        linexpr0 = generate_linexpr0(weights[i],biases[i],num_in_pixels)
+        element = elina_abstract0_assign_linexpr_array(man, True, element, tdim, linexpr0, 1, None)
+        var+=1
+    dimrem = elina_dimchange_alloc(0,num_in_pixels)
+    for i in range(num_in_pixels):
+        dimrem.contents.dim[i] = i
+    elina_abstract0_remove_dimensions(man, True, element, dimrem)
+    elina_dimchange_free(dimrem)
+    return element
+
 
 def analyze(nn, LB_N0, UB_N0, label):   
     num_pixels = len(LB_N0)
@@ -163,31 +188,11 @@ def analyze(nn, LB_N0, UB_N0, label):
         if(nn.layertypes[layerno] in ['ReLU', 'Affine']):
            weights = nn.weights[nn.ffn_counter]
            biases = nn.biases[nn.ffn_counter]
-           dims = elina_abstract0_dimension(man,element)
-           num_in_pixels = dims.intdim + dims.realdim
-           num_out_pixels = len(weights)
+           element = affine_box_layerwise(man,element,weights, biases)
 
-           dimadd = elina_dimchange_alloc(0,num_out_pixels)    
-           for i in range(num_out_pixels):
-               dimadd.contents.dim[i] = num_in_pixels
-           elina_abstract0_add_dimensions(man, True, element, dimadd, False)
-           elina_dimchange_free(dimadd)
-           np.ascontiguousarray(weights, dtype=np.double)
-           np.ascontiguousarray(biases, dtype=np.double)
-           var = num_in_pixels
-           # handle affine layer
-           for i in range(num_out_pixels):
-               tdim= ElinaDim(var)
-               linexpr0 = generate_linexpr0(weights[i],biases[i],num_in_pixels)
-               element = elina_abstract0_assign_linexpr_array(man, True, element, tdim, linexpr0, 1, None)
-               var+=1
-           dimrem = elina_dimchange_alloc(0,num_in_pixels)
-           for i in range(num_in_pixels):
-               dimrem.contents.dim[i] = i
-           elina_abstract0_remove_dimensions(man, True, element, dimrem)
-           elina_dimchange_free(dimrem)
            # handle ReLU layer 
            if(nn.layertypes[layerno]=='ReLU'):
+              num_out_pixels = len(weights)
               element = relu_box_layerwise(man,True,element,0, num_out_pixels)
            nn.ffn_counter+=1 
 
