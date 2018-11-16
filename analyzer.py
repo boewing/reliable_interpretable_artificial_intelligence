@@ -182,6 +182,19 @@ def bounds_to_elina_interval(man, LB, UB):
     elina_interval_array_free(itv,num_pixels)
     return element
 
+def alina_interval_to_bounds(man, element):
+    LB = []
+    UB = []
+    dims = elina_abstract0_dimension(man,element)
+    output_size = dims.intdim + dims.realdim
+    # get bounds for each output neuron
+    bounds = elina_abstract0_to_box(man,element)
+    for i in range(output_size):
+        LB.append(bounds[i].contents.inf.contents.val.dbl)
+        UB.append(bounds[i].contents.sup.contents.val.dbl)
+    elina_interval_array_free(bounds,output_size)
+    return LB, UB
+
 
 def analyze(nn, LB_N0, UB_N0, label):   
     nn.ffn_counter = 0
@@ -203,17 +216,20 @@ def analyze(nn, LB_N0, UB_N0, label):
 
         else:
            print(' net type not supported')
+
+        # this works! So for each layer we go from our bound to alina and back
+        # if we stay in the interval domain, we prob shouldn't go back and forth
+        #LB_temp, UB_temp = alina_interval_to_bounds(man, element)
+        #element = bounds_to_elina_interval(man, LB_temp, UB_temp)
    
     dims = elina_abstract0_dimension(man,element)
     output_size = dims.intdim + dims.realdim
     # get bounds for each output neuron
-    bounds = elina_abstract0_to_box(man,element)
+    final_LB, final_UB = alina_interval_to_bounds(man, element)
 
     # print upper and lower bounds for debug
     for i in range(output_size):
-        inf = bounds[i].contents.inf.contents.val.dbl
-        sup = bounds[i].contents.sup.contents.val.dbl
-        print("neuron",i,"lower bound",inf,"upper bound",sup)
+        print("converted neuron", i, "lower bound", final_LB[i], "upper bound", final_UB[i])
 
     # if epsilon is zero, try to classify else verify robustness 
     
@@ -221,11 +237,11 @@ def analyze(nn, LB_N0, UB_N0, label):
     predicted_label = 0
     if(LB_N0[0]==UB_N0[0]):
         for i in range(output_size):
-            inf = bounds[i].contents.inf.contents.val.dbl
+            inf = final_LB[i] #bounds[i].contents.inf.contents.val.dbl
             flag = True
             for j in range(output_size):
                 if(j!=i):
-                   sup = bounds[j].contents.sup.contents.val.dbl
+                   sup = final_UB[j] #bounds[j].contents.sup.contents.val.dbl
                    if(inf<=sup):
                       flag = False
                       break
@@ -234,16 +250,18 @@ def analyze(nn, LB_N0, UB_N0, label):
                 break    
     else:
         #for a label to be verified, all upper bounds of the intervals have to be below (<=) the lower bound of the the label interval
-        inf = bounds[label].contents.inf.contents.val.dbl #inf is the lower bound of an interval
+        #inf = bounds[label].contents.inf.contents.val.dbl #inf is the lower bound of an interval
+        inf = final_LB[label]
         for j in range(output_size):
             if(j!=label):
-                sup = bounds[j].contents.sup.contents.val.dbl #sup is the upper bound of an interval
+                #sup = bounds[j].contents.sup.contents.val.dbl #sup is the upper bound of an interval
+                sup = final_UB[j]
                 if(inf<=sup):
                     predicted_label = label
                     verified_flag = False
                     break
 
-    elina_interval_array_free(bounds,output_size)
+    #elina_interval_array_free(bounds,output_size)
     elina_abstract0_free(man,element)
     elina_manager_free(man)        
     return predicted_label, verified_flag
