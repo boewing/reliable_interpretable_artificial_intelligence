@@ -171,19 +171,24 @@ def affine_box_layerwise(man,element,weights, biases):
     elina_dimchange_free(dimrem)
     return element
 
-
-def analyze(nn, LB_N0, UB_N0, label):   
-    num_pixels = len(LB_N0)
-    nn.ffn_counter = 0
-    numlayer = nn.numlayer 
-    man = elina_box_manager_alloc()
+def bounds_to_elina_interval(man, LB, UB):
+    num_pixels = len(LB)
     itv = elina_interval_array_alloc(num_pixels)
     for i in range(num_pixels):
-        elina_interval_set_double(itv[i],LB_N0[i],UB_N0[i])
+        elina_interval_set_double(itv[i],LB[i],UB[i])
 
     ## construct input abstraction
     element = elina_abstract0_of_box(man, 0, num_pixels, itv)
     elina_interval_array_free(itv,num_pixels)
+    return element
+
+
+def analyze(nn, LB_N0, UB_N0, label):   
+    nn.ffn_counter = 0
+    numlayer = nn.numlayer 
+    man = elina_box_manager_alloc()
+    element = bounds_to_elina_interval(man, LB_N0, UB_N0)
+    
     for layerno in range(numlayer):
         if(nn.layertypes[layerno] in ['ReLU', 'Affine']):
            weights = nn.weights[nn.ffn_counter]
