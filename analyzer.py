@@ -19,6 +19,8 @@ from ctypes.util import find_library
 from gurobipy import *
 import time
 
+from linear_solver import *
+
 libc = CDLL(find_library('c'))
 cstdout = c_void_p.in_dll(libc, 'stdout')
 
@@ -215,6 +217,14 @@ if __name__ == '__main__':
     if len(argv) < 3 or len(argv) > 4:
         print('usage: python3.6 ' + argv[0] + ' net.txt spec.txt [timeout]')
         exit(1)
+
+    myLP = net_in_LP(np.array([-2, -2, 3]), np.array([-1, 3, 4]), 0)
+    myLP.add_ReLu()
+    myLP.add_affine(np.array([[1,2,3],[4,5,6]]))
+    LB, UB = myLP.go_to_box()
+    print("###these are the results")
+    print("Lower Bounds = " + str(LB))
+    print("Upper Bounds = " + str(UB))
 
     netname = argv[1]
     specname = argv[2]
