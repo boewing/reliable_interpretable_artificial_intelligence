@@ -197,6 +197,52 @@ def alina_interval_to_bounds(man, element):
     elina_interval_array_free(bounds,output_size)
     return LB, UB
 
+def get_label(nn, input_img):
+    # this function does one forward path through the entire net and labels the input
+    LB_N0 = input_img
+    UB_N0 = input_img
+    nn.ffn_counter = 0
+    numlayer = nn.numlayer 
+    man = elina_box_manager_alloc()
+    element = bounds_to_elina_interval(man, LB_N0, UB_N0)
+
+    for layerno in range(numlayer):
+        if(nn.layertypes[layerno] in ['ReLU', 'Affine']):
+           weights = nn.weights[nn.ffn_counter]
+           biases = nn.biases[nn.ffn_counter]
+           element = affine_box_layerwise(man,element,weights, biases)
+
+           # handle ReLU layer 
+           if(nn.layertypes[layerno]=='ReLU'):
+              num_out_pixels = len(weights)
+              element = relu_box_layerwise(man,True,element,0, num_out_pixels)
+           nn.ffn_counter+=1 
+
+        else:
+           print(' net type not supported')
+   
+    dims = elina_abstract0_dimension(man,element)
+    output_size = dims.intdim + dims.realdim
+    # get bounds for each output neuron
+    final_LB, final_UB = alina_interval_to_bounds(man, element)
+
+    # try to classify
+    predicted_label = 0
+    
+    for i in range(output_size):
+        inf = final_LB[i] #bounds[i].contents.inf.contents.val.dbl
+        flag = True
+        for j in range(output_size):
+            if(j!=i):
+               sup = final_UB[j] #bounds[j].contents.sup.contents.val.dbl
+               if(inf<=sup):
+                  flag = False
+                  break
+        if(flag):
+            predicted_label = i
+            break    
+    return predicted_label
+
 
 def analyze(nn, LB_N0, UB_N0, label):   
     nn.ffn_counter = 0
@@ -281,13 +327,13 @@ if __name__ == '__main__':
         print('usage: python3.6 ' + argv[0] + ' net.txt spec.txt [timeout]')
         exit(1)
 
-    myLP = net_in_LP(np.array([-2, -2, 3]), np.array([-1, 3, 4]), 0)
-    myLP.add_ReLu()
-    myLP.add_affine(np.array([[1,2,3],[4,5,6]]),np.array([1, 2]))
-    LB, UB = myLP.go_to_box()
-    print("###these are the results")
-    print("Lower Bounds = " + str(LB))
-    print("Upper Bounds = " + str(UB))
+    #myLP = net_in_LP(np.array([-2, -2, 3]), np.array([-1, 3, 4]), 0)
+    #myLP.add_ReLu()
+    #myLP.add_affine(np.array([[1,2,3],[4,5,6]]),np.array([1, 2]))
+    #LB, UB = myLP.go_to_box()
+    #print("###these are the results")
+    #print("Lower Bounds = " + str(LB))
+    #print("Upper Bounds = " + str(UB))
 
     netname = argv[1]
     specname = argv[2]
@@ -302,6 +348,10 @@ if __name__ == '__main__':
     LB_N0, UB_N0 = get_perturbed_image(x0_low,0)
     
     label, _ = analyze(nn,LB_N0,UB_N0,0)
+    own_label = get_label(nn, LB_N0)
+    print("##############label", label, "own_label", own_label)
+    if label != own_label:
+        exit(0)
     start = time.time()
     if(label==int(x0_low[0])):
         LB_N0, UB_N0 = get_perturbed_image(x0_low,epsilon)
