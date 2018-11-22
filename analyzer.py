@@ -203,17 +203,20 @@ def analyze(nn, LB_N0, UB_N0, label):
     numlayer = nn.numlayer 
     man = elina_box_manager_alloc()
     element = bounds_to_elina_interval(man, LB_N0, UB_N0)
-    
+    myLP = net_in_LP(LB_N0, UB_N0, 0)
+
     for layerno in range(numlayer):
         if(nn.layertypes[layerno] in ['ReLU', 'Affine']):
            weights = nn.weights[nn.ffn_counter]
            biases = nn.biases[nn.ffn_counter]
            element = affine_box_layerwise(man,element,weights, biases)
+           myLP.add_affine(weights,biases)
 
            # handle ReLU layer 
            if(nn.layertypes[layerno]=='ReLU'):
               num_out_pixels = len(weights)
               element = relu_box_layerwise(man,True,element,0, num_out_pixels)
+              myLP.add_ReLu()
            nn.ffn_counter+=1 
 
         else:
@@ -228,10 +231,12 @@ def analyze(nn, LB_N0, UB_N0, label):
     output_size = dims.intdim + dims.realdim
     # get bounds for each output neuron
     final_LB, final_UB = alina_interval_to_bounds(man, element)
+    LP_LB, LP_UB = myLP.go_to_box()
 
     # print upper and lower bounds for debug
     for i in range(output_size):
         print("converted neuron", i, "lower bound", final_LB[i], "upper bound", final_UB[i])
+        print("LP neuron", i, "lower bound", LP_LB[i], "upper bound", LP_UB[i])
 
     # if epsilon is zero, try to classify else verify robustness 
     
