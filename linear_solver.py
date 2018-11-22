@@ -11,9 +11,9 @@ class net_in_LP:
         self.last_layer_num += 1
         self.model, self.last_layer = add_ReLu(self.model, self.last_layer, self.last_layer_num)
 
-    def add_affine(self,weights):
+    def add_affine(self,weights, biases):
         self.last_layer_num += 1
-        self.model, self.last_layer = add_affine(self.model, weights, self.last_layer, self.last_layer_num)
+        self.model, self.last_layer = add_affine(self.model, weights, biases, self.last_layer, self.last_layer_num)
 
     def go_to_box(self):
         return go_to_box(self.model, self.last_layer)
@@ -60,11 +60,11 @@ def add_ReLu(model, last_layer, layer_num):
     return model, r
 
 
-def add_affine(model, weights, last_layer, layer_num):
+def add_affine(model, weights, biases, last_layer, layer_num):
     size = weights.shape
     m = size[0]
     n = size[1]
     h = model.addVars(m, name=str(layer_num) + "v")
-    model.addConstrs((h[j] == last_layer.prod({i: e for i, e in enumerate(weights[j, :])}) for j in range(m)), name=str(layer_num) + "c")
+    model.addConstrs((h[j] == biases[j] + last_layer.prod({i: e for i, e in enumerate(weights[j, :])}) for j in range(m)), name=str(layer_num) + "c")
 
     return model, h

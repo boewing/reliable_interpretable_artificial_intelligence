@@ -278,7 +278,7 @@ if __name__ == '__main__':
 
     myLP = net_in_LP(np.array([-2, -2, 3]), np.array([-1, 3, 4]), 0)
     myLP.add_ReLu()
-    myLP.add_affine(np.array([[1,2,3],[4,5,6]]))
+    myLP.add_affine(np.array([[1,2,3],[4,5,6]]),np.array([1, 2]))
     LB, UB = myLP.go_to_box()
     print("###these are the results")
     print("Lower Bounds = " + str(LB))
