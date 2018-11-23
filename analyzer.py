@@ -243,26 +243,89 @@ def get_label(nn, input_img):
             break    
     return predicted_label
 
+class Oracle:
+    def __init__(self, nn):
+        self.nn = nn
+        self.layer_types=[]
+        self.nn_layer_link =[]
+        for num,nn_layer in enumerate(nn.layertypes):
+            if nn_layer=='ReLU':
+                self.layer_types.append('affine')
+                self.layer_types.append('relu')
+                self.nn_layer_link.append(num)
+                self.nn_layer_link.append(num)
+            elif nn_layer=='Affine':
+                self.layer_types.append('affine')
+                self.nn_layer_link.append(num)
+        #print(nn.layertypes)
+        #print(nn.numlayer)
+        #print(self.layer_types)
+        #print(self.nn_layer_link)
+    
+    def get_strategy(self):
+        #return ['box']*len(self.layer_types)
+        return ['LP']*len(self.layer_types)
+
 
 def analyze(nn, LB_N0, UB_N0, label):   
     nn.ffn_counter = 0
     numlayer = nn.numlayer 
     man = elina_box_manager_alloc()
-    element = bounds_to_elina_interval(man, LB_N0, UB_N0)
-    myLP = net_in_LP(LB_N0, UB_N0, 0)
+    
+    
+    oracle = Oracle(nn)
+    strategy = oracle.get_strategy()
+    if strategy[0]=='box':
+        element = bounds_to_elina_interval(man, LB_N0, UB_N0)
+        myLP = None
+    elif strategy[0]=='LP':
+        element = None
+        myLP = net_in_LP(LB_N0, UB_N0, 0)
 
+    strategyno=0
     for layerno in range(numlayer):
         if(nn.layertypes[layerno] in ['ReLU', 'Affine']):
            weights = nn.weights[nn.ffn_counter]
            biases = nn.biases[nn.ffn_counter]
-           element = affine_box_layerwise(man,element,weights, biases)
-           myLP.add_affine(weights,biases)
+           if strategy[strategyno]=='box':
+                if element==None: #we come from LP and go to box
+                    LB, UB = myLP.go_to_box()
+                    element = bounds_to_elina_interval(man, LB_N0, UB_N0)
+                    element = affine_box_layerwise(man,element,weights, biases)
+                    myLP = None
+                elif myLP==None: #we stay in box
+                    element = affine_box_layerwise(man,element,weights, biases)
+           elif strategy[strategyno]=='LP':
+                if element==None: #we stay in LP
+                    myLP.add_affine(weights,biases)
+                elif myLP==None: #we come from box and go to LP
+                    LB, UB = alina_interval_to_bounds(man, element)
+                    myLP = net_in_LP(LB, UB, 0) #TODO: Felix do we need to set a different num here as 3rd param?
+                    myLP.add_affine(weights,biases)
+                    element = None
+           strategyno+=1
 
            # handle ReLU layer 
            if(nn.layertypes[layerno]=='ReLU'):
-              num_out_pixels = len(weights)
-              element = relu_box_layerwise(man,True,element,0, num_out_pixels)
-              myLP.add_ReLu()
+                num_out_pixels = len(weights)
+                if strategy[strategyno]=='box':
+                    if element==None: #we come from LP and go to box
+                          LB, UB = myLP.go_to_box()
+                          element = bounds_to_elina_interval(man, LB_N0, UB_N0)
+                          element = relu_box_layerwise(man,True,element,0, num_out_pixels)
+                          myLP = None
+                    elif myLP==None: #we stay in box
+                          element = relu_box_layerwise(man,True,element,0, num_out_pixels)
+                elif strategy[strategyno]=='LP':
+                    if element==None: #we stay in LP
+                          myLP.add_ReLu()
+                    elif myLP==None: #we come from box and go to LP
+                          LB, UB = alina_interval_to_bounds(man, element)
+                          myLP = net_in_LP(LB, UB, 0) #TODO: Felix do we need to set a different num here as 3rd param?
+                          myLP.add_ReLu()
+                          element = None
+                strategyno+=1
+
            nn.ffn_counter+=1 
 
         else:
@@ -272,17 +335,20 @@ def analyze(nn, LB_N0, UB_N0, label):
         # if we stay in the interval domain, we prob shouldn't go back and forth
         #LB_temp, UB_temp = alina_interval_to_bounds(man, element)
         #element = bounds_to_elina_interval(man, LB_temp, UB_temp)
-   
-    dims = elina_abstract0_dimension(man,element)
-    output_size = dims.intdim + dims.realdim
-    # get bounds for each output neuron
-    final_LB, final_UB = alina_interval_to_bounds(man, element)
-    LP_LB, LP_UB = myLP.go_to_box()
 
+    # get bounds for each output neuron
+    if myLP==None:
+        final_LB, final_UB = alina_interval_to_bounds(man, element)
+        #dims = elina_abstract0_dimension(man, element)
+        #output_size = dims.intdim + dims.realdim
+    elif element==None:
+        final_LB, final_UB = myLP.go_to_box()
+
+    output_size = len(final_LB)
     # print upper and lower bounds for debug
     for i in range(output_size):
         print("converted neuron", i, "lower bound", final_LB[i], "upper bound", final_UB[i])
-        print("LP neuron", i, "lower bound", LP_LB[i], "upper bound", LP_UB[i])
+        #print("LP neuron", i, "lower bound", LP_LB[i], "upper bound", LP_UB[i])
 
     # if epsilon is zero, try to classify else verify robustness 
     
@@ -315,8 +381,9 @@ def analyze(nn, LB_N0, UB_N0, label):
                     break
 
     #elina_interval_array_free(bounds,output_size)
-    elina_abstract0_free(man,element)
-    elina_manager_free(man)        
+    if element!=None:
+        elina_abstract0_free(man,element)
+    elina_manager_free(man)
     return predicted_label, verified_flag
 
 
