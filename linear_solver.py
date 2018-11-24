@@ -25,6 +25,7 @@ def go_to_box(model, last_layer):
     for i in range(n):
         model.setObjective(last_layer[i], GRB.MAXIMIZE)
         model.optimize()
+        #   model.write("debug.lp")
         UB[i] = last_layer[i].x
 
         model.setObjective(last_layer[i], GRB.MINIMIZE)
@@ -43,7 +44,7 @@ def add_ReLu(model, last_layer, layer_num):
     LB, UB = go_to_box(model, last_layer)
 
     n = len(last_layer)
-    r = model.addVars(n, name=str(layer_num)+"v")
+    r = model.addVars(n, name=str(layer_num)+"v",lb=-GRB.INFINITY, ub=GRB.INFINITY)
     for k in range(n):
         #  ik = model.getVarByName(str(layer_num-1) + "v[" + str(k) + "]")
         if LB[k] >= 0:
@@ -64,7 +65,10 @@ def add_affine(model, weights, biases, last_layer, layer_num):
     size = weights.shape
     m = size[0]
     n = size[1]
-    h = model.addVars(m, name=str(layer_num) + "v")
+    h = model.addVars(m, name=str(layer_num) + "v",lb=-GRB.INFINITY, ub=GRB.INFINITY)
+    #  print({i: e for i, e in enumerate(weights[1, :])})
+    #  print(last_layer)
     model.addConstrs((h[j] == biases[j] + last_layer.prod({i: e for i, e in enumerate(weights[j, :])}) for j in range(m)), name=str(layer_num) + "c")
+
 
     return model, h

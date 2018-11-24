@@ -304,6 +304,7 @@ def analyze(nn, LB_N0, UB_N0, label):
                     myLP.add_affine(weights,biases)
                     element = None
            strategyno+=1
+           #  Question: is it necessary to increase the strategyno twice?
 
            # handle ReLU layer 
            if(nn.layertypes[layerno]=='ReLU'):
@@ -394,9 +395,10 @@ if __name__ == '__main__':
         print('usage: python3.6 ' + argv[0] + ' net.txt spec.txt [timeout]')
         exit(1)
 
-    #myLP = net_in_LP(np.array([-2, -2, 3]), np.array([-1, 3, 4]), 0)
+
+    #myLP = net_in_LP(np.array([1, 1]), np.array([1, 1]), 0)
+    #myLP.add_affine(np.array([[1,-2]]),np.array([0, 0]))
     #myLP.add_ReLu()
-    #myLP.add_affine(np.array([[1,2,3],[4,5,6]]),np.array([1, 2]))
     #LB, UB = myLP.go_to_box()
     #print("###these are the results")
     #print("Lower Bounds = " + str(LB))
@@ -414,8 +416,9 @@ if __name__ == '__main__':
     x0_low, x0_high = parse_spec(specstring)
     LB_N0, UB_N0 = get_perturbed_image(x0_low,0)
     
-    label, _ = analyze(nn,LB_N0,UB_N0,0)
+    #  label, _ = analyze(nn,LB_N0,UB_N0,0)
     own_label = get_label(nn, LB_N0)
+    label = own_label
     print("##############label", label, "own_label", own_label)
     if label != own_label:
         exit(0)
