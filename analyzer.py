@@ -264,7 +264,10 @@ class Oracle:
     
     def get_strategy(self):
         #return ['box']*len(self.layer_types)
-        return ['LP']*len(self.layer_types)
+        #return ['LP']*len(self.layer_types)
+        b= 2
+        temp = ['LP'] * (len(self.layer_types) -b) + ['box']*b
+        return temp
 
 
 def analyze(nn, LB_N0, UB_N0, label):   

@@ -36,6 +36,7 @@ def go_to_box(model, last_layer):
 
 def bounds_to_model(LB,UB,layer_num):
     model = Model("myLP")
+    model.setParam('OutputFlag',False)
     last_layer = model.addVars(len(LB), name=str(layer_num)+"v", lb=LB, ub=UB)
     return model, last_layer
 
@@ -64,11 +65,9 @@ def add_ReLu(model, last_layer, layer_num):
 def add_affine(model, weights, biases, last_layer, layer_num):
     size = weights.shape
     m = size[0]
-    n = size[1]
+    #  n = size[1]
     h = model.addVars(m, name=str(layer_num) + "v",lb=-GRB.INFINITY, ub=GRB.INFINITY)
     #  print({i: e for i, e in enumerate(weights[1, :])})
     #  print(last_layer)
     model.addConstrs((h[j] == biases[j] + last_layer.prod({i: e for i, e in enumerate(weights[j, :])}) for j in range(m)), name=str(layer_num) + "c")
-
-
     return model, h
