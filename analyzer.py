@@ -225,6 +225,8 @@ def get_label(nn, input_img):
     output_size = dims.intdim + dims.realdim
     # get bounds for each output neuron
     final_LB, final_UB = alina_interval_to_bounds(man, element)
+    elina_abstract0_free(man, element)
+    elina_manager_free(man)
 
     # try to classify
     predicted_label = 0
@@ -288,12 +290,13 @@ def analyze(nn, LB_N0, UB_N0, label):
     strategyno=0
     for layerno in range(numlayer):
         if(nn.layertypes[layerno] in ['ReLU', 'Affine']):
+           print ("add affine layer to problem", strategyno, "strategy",strategy[strategyno])
            weights = nn.weights[nn.ffn_counter]
            biases = nn.biases[nn.ffn_counter]
            if strategy[strategyno]=='box':
                 if element==None: #we come from LP and go to box
                     LB, UB = myLP.go_to_box()
-                    element = bounds_to_elina_interval(man, LB_N0, UB_N0)
+                    element = bounds_to_elina_interval(man, LB, UB)
                     element = affine_box_layerwise(man,element,weights, biases)
                     myLP = None
                 elif myLP==None: #we stay in box
@@ -311,11 +314,12 @@ def analyze(nn, LB_N0, UB_N0, label):
 
            # handle ReLU layer 
            if(nn.layertypes[layerno]=='ReLU'):
+                print ("add relu layer to problem", strategyno, "strategy",strategy[strategyno])
                 num_out_pixels = len(weights)
                 if strategy[strategyno]=='box':
                     if element==None: #we come from LP and go to box
                           LB, UB = myLP.go_to_box()
-                          element = bounds_to_elina_interval(man, LB_N0, UB_N0)
+                          element = bounds_to_elina_interval(man, LB, UB)
                           element = relu_box_layerwise(man,True,element,0, num_out_pixels)
                           myLP = None
                     elif myLP==None: #we stay in box
