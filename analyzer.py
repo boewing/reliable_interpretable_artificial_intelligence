@@ -266,7 +266,7 @@ class Oracle:
     
     def get_strategy(self):
 
-        a = 1
+        a = 0
         b = 0
         temp = ['box']*a + ['LP'] * (len(self.layer_types) -b - a) + ['box']*b
 
@@ -308,7 +308,7 @@ def analyze(nn, LB_N0, UB_N0, label):
                     myLP.add_affine(weights,biases)
                 elif myLP==None: #we come from box and go to LP
                     LB, UB = alina_interval_to_bounds(man, element)
-                    myLP = net_in_LP(LB, UB, 0) #TODO: Felix do we need to set a different num here as 3rd param?
+                    myLP = net_in_LP(LB, UB, 0, label)
                     myLP.add_affine(weights,biases)
                     element = None
            strategyno+=1
@@ -331,7 +331,7 @@ def analyze(nn, LB_N0, UB_N0, label):
                           myLP.add_ReLu()
                     elif myLP==None: #we come from box and go to LP
                           LB, UB = alina_interval_to_bounds(man, element)
-                          myLP = net_in_LP(LB, UB, 0, label) #TODO: Felix do we need to set a different num here as 3rd param?
+                          myLP = net_in_LP(LB, UB, 0, label)
                           myLP.add_ReLu()
                           element = None
                 strategyno+=1
@@ -349,47 +349,47 @@ def analyze(nn, LB_N0, UB_N0, label):
     # get bounds for each output neuron
     if myLP==None:
         final_LB, final_UB = alina_interval_to_bounds(man, element)
+        output_size = len(final_LB)
+        # print upper and lower bounds for debug
+        for i in range(output_size):
+            print("converted neuron", i, "lower bound", final_LB[i], "upper bound", final_UB[i])
+            # print("LP neuron", i, "lower bound", LP_LB[i], "upper bound", LP_UB[i])
+
+        # if epsilon is zero, try to classify else verify robustness
+
+        verified_flag = True
+        predicted_label = 0
+        if (LB_N0[0] == UB_N0[0]):
+            for i in range(output_size):
+                inf = final_LB[i]  # bounds[i].contents.inf.contents.val.dbl
+                flag = True
+                for j in range(output_size):
+                    if (j != i):
+                        sup = final_UB[j]  # bounds[j].contents.sup.contents.val.dbl
+                        if (inf <= sup):
+                            flag = False
+                            break
+                if (flag):
+                    predicted_label = i
+                    break
+        else:
+            # for a label to be verified, all upper bounds of the intervals have to be below (<=) the lower bound of the the label interval
+            # inf = bounds[label].contents.inf.contents.val.dbl #inf is the lower bound of an interval
+            inf = final_LB[label]
+            for j in range(output_size):
+                if (j != label):
+                    # sup = bounds[j].contents.sup.contents.val.dbl #sup is the upper bound of an interval
+                    sup = final_UB[j]
+                    if (inf <= sup):
+                        predicted_label = label
+                        verified_flag = False
+                        break
         #dims = elina_abstract0_dimension(man, element)
         #output_size = dims.intdim + dims.realdim
     elif element==None:
-        final_LB, final_UB = myLP.go_to_box()
-        print("The stability by the new verifier is verified = " + str(myLP.verify_label()))
-
-    output_size = len(final_LB)
-    # print upper and lower bounds for debug
-    for i in range(output_size):
-        print("converted neuron", i, "lower bound", final_LB[i], "upper bound", final_UB[i])
-        #print("LP neuron", i, "lower bound", LP_LB[i], "upper bound", LP_UB[i])
-
-    # if epsilon is zero, try to classify else verify robustness 
-    
-    verified_flag = True
-    predicted_label = 0
-    if(LB_N0[0]==UB_N0[0]):
-        for i in range(output_size):
-            inf = final_LB[i] #bounds[i].contents.inf.contents.val.dbl
-            flag = True
-            for j in range(output_size):
-                if(j!=i):
-                   sup = final_UB[j] #bounds[j].contents.sup.contents.val.dbl
-                   if(inf<=sup):
-                      flag = False
-                      break
-            if(flag):
-                predicted_label = i
-                break    
-    else:
-        #for a label to be verified, all upper bounds of the intervals have to be below (<=) the lower bound of the the label interval
-        #inf = bounds[label].contents.inf.contents.val.dbl #inf is the lower bound of an interval
-        inf = final_LB[label]
-        for j in range(output_size):
-            if(j!=label):
-                #sup = bounds[j].contents.sup.contents.val.dbl #sup is the upper bound of an interval
-                sup = final_UB[j]
-                if(inf<=sup):
-                    predicted_label = label
-                    verified_flag = False
-                    break
+        #final_LB, final_UB = myLP.go_to_box()
+        verified_flag = myLP.verify_label()
+        predicted_label = label
 
     #elina_interval_array_free(bounds,output_size)
     if element!=None:

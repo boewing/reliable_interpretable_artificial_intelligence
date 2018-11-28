@@ -20,17 +20,17 @@ class net_in_LP:
         return go_to_box(self.model, self.last_layer)
 
     def verify_label(self):
-        return verify_label(self.model, self.last_layer, self.label, self.last_layer_num - self.init_layer_num)
+        return verify_label(self.model, self.last_layer, self.label)
 
 
-def verify_label(model,last_layer,label, nlayers):
+def verify_label(model,last_layer,label):
     #  this function is a performance improvement for the last layer bounds, it can prove that
     #  all other labels than label have a strictly smaller logit value than the label.
     #  can only be called for the last layer of the network
     #  it gives tighter bounds than the bounds comparison.
 
     #prepare the indices which are not the label
-    r = list(range(nlayers))
+    r = list(range(len(last_layer)))
     del r[label]
     for i in r:
         model.setObjective(last_layer[i] - last_layer[label], GRB.MAXIMIZE)
