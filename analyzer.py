@@ -32,6 +32,12 @@ class layers:
         self.numlayer = 0
         self.ffn_counter = 0
 
+    def get_shape(self):
+        res = []
+        for i in range(self.numlayer):
+            res.append(len(self.biases[i]))
+        return res
+
 def parse_bias(text):
     if len(text) < 1 or text[0] != '[':
         raise Exception("expected '['")
@@ -266,7 +272,7 @@ class Oracle:
     
     def get_strategy(self):
 
-        a = 0
+        a = 6
         b = 0
         temp = ['box']*a + ['LP'] * (len(self.layer_types) -b - a) + ['box']*b
 
@@ -420,13 +426,14 @@ if __name__ == '__main__':
     with open(specname, 'r') as specfile:
         specstring = specfile.read()
     nn = parse_net(netstring)
+    print("shape of net = " + str(nn.get_shape()))
     x0_low, x0_high = parse_spec(specstring)
     LB_N0, UB_N0 = get_perturbed_image(x0_low,0)
     
     #  label, _ = analyze(nn,LB_N0,UB_N0,0)
     own_label = get_label(nn, LB_N0)
     label = own_label
-    print("##############label", label, "own_label", own_label)
+    #  print("##############label", label, "own_label", own_label)
     if label != own_label:
         exit(0)
     start = time.time()
