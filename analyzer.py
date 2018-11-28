@@ -265,10 +265,12 @@ class Oracle:
         #print(self.nn_layer_link)
     
     def get_strategy(self):
-        #return ['box']*len(self.layer_types)
-        #return ['LP']*len(self.layer_types)
-        b= 2
-        temp = ['LP'] * (len(self.layer_types) -b) + ['box']*b
+
+        a = 1
+        b = 0
+        temp = ['box']*a + ['LP'] * (len(self.layer_types) -b - a) + ['box']*b
+
+
         return temp
 
 
@@ -285,7 +287,7 @@ def analyze(nn, LB_N0, UB_N0, label):
         myLP = None
     elif strategy[0]=='LP':
         element = None
-        myLP = net_in_LP(LB_N0, UB_N0, 0)
+        myLP = net_in_LP(LB_N0, UB_N0, 0, label)
 
     strategyno=0
     for layerno in range(numlayer):
@@ -329,7 +331,7 @@ def analyze(nn, LB_N0, UB_N0, label):
                           myLP.add_ReLu()
                     elif myLP==None: #we come from box and go to LP
                           LB, UB = alina_interval_to_bounds(man, element)
-                          myLP = net_in_LP(LB, UB, 0) #TODO: Felix do we need to set a different num here as 3rd param?
+                          myLP = net_in_LP(LB, UB, 0, label) #TODO: Felix do we need to set a different num here as 3rd param?
                           myLP.add_ReLu()
                           element = None
                 strategyno+=1
@@ -351,6 +353,7 @@ def analyze(nn, LB_N0, UB_N0, label):
         #output_size = dims.intdim + dims.realdim
     elif element==None:
         final_LB, final_UB = myLP.go_to_box()
+        print("The stability by the new verifier is verified = " + str(myLP.verify_label()))
 
     output_size = len(final_LB)
     # print upper and lower bounds for debug
@@ -401,15 +404,6 @@ if __name__ == '__main__':
     if len(argv) < 3 or len(argv) > 4:
         print('usage: python3.6 ' + argv[0] + ' net.txt spec.txt [timeout]')
         exit(1)
-
-
-    #myLP = net_in_LP(np.array([1, 1]), np.array([1, 1]), 0)
-    #myLP.add_affine(np.array([[1,-2]]),np.array([0, 0]))
-    #myLP.add_ReLu()
-    #LB, UB = myLP.go_to_box()
-    #print("###these are the results")
-    #print("Lower Bounds = " + str(LB))
-    #print("Upper Bounds = " + str(UB))
 
     netname = argv[1]
     specname = argv[2]
