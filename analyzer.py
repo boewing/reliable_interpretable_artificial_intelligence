@@ -405,6 +405,12 @@ if __name__ == '__main__':
         print('usage: python3.6 ' + argv[0] + ' net.txt spec.txt [timeout]')
         exit(1)
 
+    # m = Model()
+    # h = m.addVars(2,lb=[-1, -2], ub=[2, 3])
+    # m.write("debug.lp")
+    # add_ReLu(m,h,0)
+    # m.write("debug_end.lp")
+
     netname = argv[1]
     specname = argv[2]
     epsilon = float(argv[3])
