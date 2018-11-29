@@ -272,11 +272,9 @@ class Oracle:
     
     def get_strategy(self):
 
-        a = 6
+        a = 0
         b = 0
         temp = ['box']*a + ['LP'] * (len(self.layer_types) -b - a) + ['box']*b
-
-
         return temp
 
 

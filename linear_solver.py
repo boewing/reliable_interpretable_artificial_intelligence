@@ -98,6 +98,27 @@ def add_ReLu_slow(model, last_layer, layer_num):
 def add_ReLu(model, last_layer, layer_num):
     LB, UB = go_to_box(model, last_layer)
     n = len(last_layer)
+
+    for k in range(n):
+        if LB[k] <= 0:
+            if UB[k] <= 0:
+                last_layer[k] = 0
+            else:
+                temp = model.addVar(lb=0, ub=GRB.INFINITY)
+                model.addLConstr(temp >= last_layer[k], str(layer_num) + "cc" + str(k))
+                lam = UB[k] / (UB[k] - LB[k])
+                d = -LB[k] * lam
+                model.addLConstr(temp <= lam * last_layer[k] + d, str(layer_num) + "ccc" + str(k))
+
+                last_layer[k] = temp
+
+    return model, last_layer
+
+#  This function was the attempt to model more tight constraints by adding a quadratic constraint
+#  Unfortunately it is not solvable because the set is not convex anymore and the Q matrix not positive semidefinite
+def add_ReLu_precise(model, last_layer, layer_num):
+    LB, UB = go_to_box(model, last_layer)
+    n = len(last_layer)
     r = model.addVars(n, name=str(layer_num) + "v", lb=-GRB.INFINITY, ub=GRB.INFINITY)
     for k in range(n):
         if LB[k] <= 0:
@@ -105,11 +126,15 @@ def add_ReLu(model, last_layer, layer_num):
                 last_layer[k] = 0
             else:
                 temp = model.addVar(lb=0, ub=GRB.INFINITY)
-                model.addLConstr(temp >= 0, str(layer_num) + "c" + str(k))
+                #model.addLConstr(temp >= 0, str(layer_num) + "c" + str(k))
                 model.addLConstr(temp >= last_layer[k], str(layer_num) + "cc" + str(k))
-                lam = UB[k] / (UB[k] - LB[k])
-                d = -LB[k] * lam
-                model.addLConstr(temp <= lam * last_layer[k] + d, str(layer_num) + "ccc" + str(k))
+                #lam = UB[k] / (UB[k] - LB[k])
+                #d = -LB[k] * lam
+                #model.addLConstr(temp <= lam * last_layer[k] + d, str(layer_num) + "ccc" + str(k))
+                zba =2*UB+LB
+                #model.addConstr((last_layer[k] - LB[k])*(last_layer[k] - LB[k]) + (temp-ba[k])*(temp-ba[k]) >= ba[k]*ba[k])
+                #model.addConstr(last_layer[k]*last_layer[k] - 2*LB[k]*last_layer[k] + LB[k]*LB[k] + temp*temp - 2*temp*zba + zba*zba >= zba)
+                model.addConstr(last_layer[k] * last_layer[k] - 2*LB[k]*last_layer[k] + LB[k]*LB[k] + temp*temp - 2*temp*zba[k] + zba[k] * zba[k] >= zba[k])
 
                 last_layer[k] = temp
 
@@ -126,4 +151,8 @@ def add_affine(model, weights, biases, last_layer, layer_num):
     model.addConstrs(
         (h[j] == biases[j] + last_layer.prod({i: e for i, e in enumerate(weights[j, :])}) for j in range(m)),
         name=str(layer_num) + "c")
+
+    #for j in range(m):
+    #    model.addLConstr(h[j] == biases[j] + last_layer.prod({i: e for i, e in enumerate(weights[j, :])}), name=str(layer_num) + "c")
+
     return model, h
