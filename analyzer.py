@@ -18,11 +18,14 @@ import ctypes
 from ctypes.util import find_library
 from gurobipy import *
 import time
+import datetime
 
 from linear_solver import *
 
 libc = CDLL(find_library('c'))
 cstdout = c_void_p.in_dll(libc, 'stdout')
+
+STRAT = None
 
 class layers:
     def __init__(self):
@@ -267,7 +270,7 @@ class Oracle:
                 self.nn_layer_link.append(num)
         #print(nn.layertypes)
         #print(nn.numlayer)
-        #print(self.layer_types)
+        print(self.layer_types)
         #print(self.nn_layer_link)
     
     def get_strategy(self):
@@ -275,7 +278,7 @@ class Oracle:
         a = 0
         b = 0
         temp = ['box']*a + ['LP'] * (len(self.layer_types) -b - a) + ['box']*b
-        #temp = ['LP'] *2 + ['box'] + ['LP'] * 9
+
         return temp
 
 
@@ -284,9 +287,14 @@ def analyze(nn, LB_N0, UB_N0, label):
     numlayer = nn.numlayer 
     man = elina_box_manager_alloc()
     
-    
+    print ("time",datetime.datetime.now().time())
     oracle = Oracle(nn)
-    strategy = oracle.get_strategy()
+    #strategy = oracle.get_strategy()
+    if len(STRAT) == 0:
+        strategy = oracle.get_strategy()
+    else:
+        strategy = STRAT
+    #print (strategy)
     if strategy[0]=='box':
         element = bounds_to_elina_interval(man, LB_N0, UB_N0)
         myLP = None
@@ -298,6 +306,7 @@ def analyze(nn, LB_N0, UB_N0, label):
     for layerno in range(numlayer):
         if(nn.layertypes[layerno] in ['ReLU', 'Affine']):
            print ("add affine layer to problem", strategyno, "strategy",strategy[strategyno])
+           print ("time",datetime.datetime.now().time())
            weights = nn.weights[nn.ffn_counter]
            biases = nn.biases[nn.ffn_counter]
            if strategy[strategyno]=='box':
@@ -316,12 +325,16 @@ def analyze(nn, LB_N0, UB_N0, label):
                     myLP = net_in_LP(LB, UB, 0, label)
                     myLP.add_affine(weights,biases)
                     element = None
+           else:
+                print ("not valid strategy", strategy[strategyno])
+                exit(0)
            strategyno+=1
            #  Question: is it necessary to increase the strategyno twice?
 
            # handle ReLU layer 
            if(nn.layertypes[layerno]=='ReLU'):
                 print ("add relu layer to problem", strategyno, "strategy",strategy[strategyno])
+                print ("time",datetime.datetime.now().time())
                 num_out_pixels = len(weights)
                 if strategy[strategyno]=='box':
                     if element==None: #we come from LP and go to box
@@ -339,6 +352,9 @@ def analyze(nn, LB_N0, UB_N0, label):
                           myLP = net_in_LP(LB, UB, 0, label)
                           myLP.add_ReLu()
                           element = None
+                else:
+                    print ("not valid strategy", strategy[strategyno])
+                    exit(0)
                 strategyno+=1
 
            nn.ffn_counter+=1 
@@ -351,6 +367,7 @@ def analyze(nn, LB_N0, UB_N0, label):
         #LB_temp, UB_temp = alina_interval_to_bounds(man, element)
         #element = bounds_to_elina_interval(man, LB_temp, UB_temp)
 
+    print ("time",datetime.datetime.now().time())
     # get bounds for each output neuron
     if myLP==None:
         final_LB, final_UB = alina_interval_to_bounds(man, element)
@@ -400,15 +417,16 @@ def analyze(nn, LB_N0, UB_N0, label):
     if element!=None:
         elina_abstract0_free(man,element)
     elina_manager_free(man)
+    print ("time",datetime.datetime.now().time())
     return predicted_label, verified_flag
 
 
 
 if __name__ == '__main__':
     from sys import argv
-    if len(argv) < 3 or len(argv) > 4:
-        print('usage: python3.6 ' + argv[0] + ' net.txt spec.txt [timeout]')
-        exit(1)
+    #if len(argv) < 3 or len(argv) > 4:
+    #    print('usage: python3.6 ' + argv[0] + ' net.txt spec.txt [timeout]')
+    #    exit(1)
 
     #m = Model()
     #h = m.addVars(2,lb=[-1, -2], ub=[2, 3])
@@ -416,6 +434,9 @@ if __name__ == '__main__':
     #add_ReLu(m,h,0)
     #add_affine(m,np.array([[1 ,2],[3,4]]), np.array([5, 6]),h,0)
     #m.write("debug_end.lp")
+
+    STRAT = [argv[i] for i in range(4,len(argv))]
+    print (STRAT)
 
     netname = argv[1]
     specname = argv[2]
