@@ -8,11 +8,15 @@ class TimeOut(Exception):
 
 class net_in_LP:
     def __init__(self, LB, UB, layer_num, label, start):
-        self.model, self.last_layer = bounds_to_model(LB, UB, layer_num)
         self.init_layer_num = layer_num
         self.last_layer_num = layer_num
         self.label = label
         self.start = start
+
+        #bounds to model
+        self.model = Model("myLP")
+        self.model.setParam('OutputFlag', False)
+        self.last_layer = self.model.addVars(len(LB), name=str(layer_num) + "v", lb=LB, ub=UB)
 
         # the bounds before the last ReLu Layer
         self.last_bounds_LB = LB
@@ -39,15 +43,34 @@ class net_in_LP:
 
     def add_affine(self, weights, biases):
         self.last_layer_num += 1
-        self.model, self.last_layer = add_affine(self.model, weights, biases, self.last_layer, self.last_layer_num)
+        size = weights.shape
+        n = size[1]
+        m = size[0]
+        assert(n == len(self.last_layer))
+        assert(m == len(biases))
+
+        h = self.model.addVars(m, name=str(self.last_layer_num) + "v", lb=-GRB.INFINITY, ub=GRB.INFINITY)
+        #  print({i: e for i, e in enumerate(weights[1, :])})
+        #  print(last_layer)
+            # test = sorted(last_layer.iterkeys())
+            # assert(test == list(range(n)))
+
+        # here we create the linear expression in a very efficient manner. but a ordered list of gurobi variables is needed
+        vars = [var for (key, var) in sorted(self.last_layer.iteritems())]
+        for j in range(m):
+            fun = LinExpr(weights[j, :], vars)
+            fun.addConstant(biases[j])
+            self.model.addLConstr(h[j] == fun, name=str(self.last_layer_num) + "c")
+
+        self.last_layer = h
 
     def go_to_box(self, approximative):
         n = len(self.last_layer)
-        UB = np.zeros(n)
-        LB = np.zeros(n)
+        UB = []
+        LB = []
         for i in range(n):
-            UB[i] = self.find_one_bound(self.last_layer[i], True, approximative)
-            LB[i] = self.find_one_bound(self.last_layer[i], False, approximative)
+            UB.append(self.find_one_bound(self.last_layer[i], True, approximative))
+            LB.append(self.find_one_bound(self.last_layer[i], False, approximative))
 
         return LB, UB
 
@@ -73,44 +96,35 @@ class net_in_LP:
             assert False
 
     def verify_label(self):
-        return verify_label(self.model, self.last_layer, self.label)
+        #  this function is a performance improvement for the last layer bounds, it can prove that
+        #  all other labels than label have a strictly smaller logit value than the label.
+        #  can only be called for the last layer of the network
+        #  it gives tighter bounds than the bounds comparison.
 
-
-def verify_label(model, last_layer, label):
-    #  this function is a performance improvement for the last layer bounds, it can prove that
-    #  all other labels than label have a strictly smaller logit value than the label.
-    #  can only be called for the last layer of the network
-    #  it gives tighter bounds than the bounds comparison.
-
-    # prepare the indices which are not the label
-    r = list(range(len(last_layer)))
-    del r[label]
-    for i in r:
-        model.setObjective(last_layer[i] - last_layer[label], GRB.MAXIMIZE)
-        model.setParam('BestObjStop', 0.0)
-        model.setParam('Cutoff', 0.0)
-        #model.setParam('TimeLimit', 0.01)
-        model.optimize()
-        if model.Status == GRB.USER_OBJ_LIMIT:
-            print("label logit (" + str(label) + ") can be larger than logit " + str(i))
-            return False
-        if model.Status == GRB.OPTIMAL:
-            obj = model.getObjective()
-            obv = obj.getValue()
-            print("logit " + str(i) + " - label logit (" + str(label) + ") <= " + str(obv))
-            if obv >= 0:
+        # prepare the indices which are not the label
+        r = list(range(len(self.last_layer)))
+        del r[self.label]
+        for i in r:
+            self.model.setObjective(self.last_layer[i] - self.last_layer[self.label], GRB.MAXIMIZE)
+            self.model.setParam('BestObjStop', 0.0)
+            self.model.setParam('Cutoff', 0.0)
+            # model.setParam('TimeLimit', 0.01)
+            self.model.optimize()
+            if self.model.Status == GRB.USER_OBJ_LIMIT:
+                print("label logit (" + str(self.label) + ") can be larger than logit " + str(i))
                 return False
-        if model.Status == GRB.CUTOFF:
-            print("logit " + str(i) + " is strictly smaller than the label logit (" + str(label) + ")")
+            elif self.model.Status == GRB.OPTIMAL:
+                obj = self.model.getObjective()
+                obv = obj.getValue()
+                print("logit " + str(i) + " - label logit (" + str(self.label) + ") <= " + str(obv))
+                if obv >= 0:
+                    return False
+            elif self.model.Status == GRB.CUTOFF:
+                print("logit " + str(i) + " is strictly smaller than the label logit (" + str(self.label) + ")")
+            else:
+                assert False
 
-    return True
-
-
-def bounds_to_model(LB, UB, layer_num):
-    model = Model("myLP")
-    model.setParam('OutputFlag', False)
-    last_layer = model.addVars(len(LB), name=str(layer_num) + "v", lb=LB, ub=UB)
-    return model, last_layer
+        return True
 
 
 # def add_ReLu_slow(model, last_layer, layer_num):
@@ -160,31 +174,3 @@ def bounds_to_model(LB, UB, layer_num):
 #
 #     return model, last_layer
 
-
-def add_affine(model, weights, biases, last_layer, layer_num):
-    size = weights.shape
-    #n = size[1]
-    m = size[0]
-    #assert(n == len(last_layer))
-    #assert(m == len(biases))
-
-    h = model.addVars(m, name=str(layer_num) + "v", lb=-GRB.INFINITY, ub=GRB.INFINITY)
-    #  print({i: e for i, e in enumerate(weights[1, :])})
-    #  print(last_layer)
-    slowcalc = False
-    if slowcalc:
-        model.addConstrs(
-         (h[j] == biases[j] + last_layer.prod({i: e for i, e in enumerate(weights[j, :])}) for j in range(m)),
-         name=str(layer_num) + "c")
-    else:
-        #test = sorted(last_layer.iterkeys())
-        #assert(test == list(range(n)))
-
-        #here we create the linear expression in a very efficient manner. but a ordered list of gurobi variables is needed
-        vars = [var for (key, var) in sorted(last_layer.iteritems())]
-        for j in range(m):
-            fun = LinExpr(weights[j, :], vars)
-            fun.addConstant(biases[j])
-            model.addLConstr(h[j] == fun, name=str(layer_num) + "c")
-
-    return model, h
