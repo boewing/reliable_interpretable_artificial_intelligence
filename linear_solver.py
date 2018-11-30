@@ -35,16 +35,21 @@ def verify_label(model, last_layer, label):
     del r[label]
     for i in r:
         model.setObjective(last_layer[i] - last_layer[label], GRB.MAXIMIZE)
-        # model.setParam('BestBdStop', 0.0)
-        # model.update()
+        model.setParam('BestObjStop', 0.0)
+        model.setParam('Cutoff', 0.0)
+        #model.setParam('TimeLimit', 0.01)
         model.optimize()
-        # print(model.Status)
-        obj = model.getObjective()
-        obv = obj.getValue()
-        print("objective value of comparison: " + str(obv))
-        #  if model.Status == GRB.USER_OBJ_LIMIT:
-        if obv > 0:
+        if model.Status == GRB.USER_OBJ_LIMIT:
+            print("label logit (" + str(label) + ") can be larger than logit " + str(i))
             return False
+        if model.Status == GRB.OPTIMAL:
+            obj = model.getObjective()
+            obv = obj.getValue()
+            print("logit " + str(i) + " - label logit (" + str(label) + ") <= " + str(obv))
+            if obv >= 0:
+                return False
+        if model.Status == GRB.CUTOFF:
+            print("logit " + str(i) + " is strictly smaller than the label logit (" + str(label) + ")")
 
     return True
 
@@ -56,13 +61,24 @@ def go_to_box(model, last_layer):
     for i in range(n):
         model.setObjective(last_layer[i], GRB.MAXIMIZE)
         # model.setParam('TimeLimit',.1)
+        model.setParam('Cutoff',0.0)
         model.optimize()
-        #   model.write("debug.lp")
-        UB[i] = last_layer[i].x
+        if model.Status == GRB.OPTIMAL:
+            UB[i] = last_layer[i].x
+        elif model.Status == GRB.CUTOFF:
+            UB[i] = 0.0
+        else:
+            assert(False)
 
         model.setObjective(last_layer[i], GRB.MINIMIZE)
+        model.setParam('Cutoff', 0.0)
         model.optimize()
-        LB[i] = last_layer[i].x
+        if model.Status == GRB.OPTIMAL:
+            LB[i] = last_layer[i].x
+        elif model.Status == GRB.CUTOFF:
+            LB[i] = 0.0
+        else:
+            assert(False)
 
     return LB, UB
 
@@ -100,9 +116,9 @@ def add_ReLu(model, last_layer, layer_num):
     n = len(last_layer)
 
     for k in range(n):
-        if LB[k] <= 0:
+        if LB[k] < 0:
             if UB[k] <= 0:
-                last_layer[k] = 0
+                last_layer[k] = model.addVar(lb=0, ub=0)
             else:
                 temp = model.addVar(lb=0, ub=GRB.INFINITY)
                 model.addLConstr(temp >= last_layer[k], str(layer_num) + "cc" + str(k))
@@ -113,6 +129,7 @@ def add_ReLu(model, last_layer, layer_num):
                 last_layer[k] = temp
 
     return model, last_layer
+
 
 #  This function was the attempt to model more tight constraints by adding a quadratic constraint
 #  Unfortunately it is not solvable because the set is not convex anymore and the Q matrix not positive semidefinite
@@ -143,16 +160,28 @@ def add_ReLu_precise(model, last_layer, layer_num):
 
 def add_affine(model, weights, biases, last_layer, layer_num):
     size = weights.shape
+    #n = size[1]
     m = size[0]
-    #  n = size[1]
+    #assert(n == len(last_layer))
+    #assert(m == len(biases))
+
     h = model.addVars(m, name=str(layer_num) + "v", lb=-GRB.INFINITY, ub=GRB.INFINITY)
     #  print({i: e for i, e in enumerate(weights[1, :])})
     #  print(last_layer)
-    model.addConstrs(
-        (h[j] == biases[j] + last_layer.prod({i: e for i, e in enumerate(weights[j, :])}) for j in range(m)),
-        name=str(layer_num) + "c")
+    slowcalc = False
+    if slowcalc:
+        model.addConstrs(
+         (h[j] == biases[j] + last_layer.prod({i: e for i, e in enumerate(weights[j, :])}) for j in range(m)),
+         name=str(layer_num) + "c")
+    else:
+        #test = sorted(last_layer.iterkeys())
+        #assert(test == list(range(n)))
 
-    #for j in range(m):
-    #    model.addLConstr(h[j] == biases[j] + last_layer.prod({i: e for i, e in enumerate(weights[j, :])}), name=str(layer_num) + "c")
+        #here we create the linear expression in a very efficient manner. but a ordered list of gurobi variables is needed
+        vars = [var for (key, var) in sorted(last_layer.iteritems())]
+        for j in range(m):
+            fun = LinExpr(weights[j, :], vars)
+            fun.addConstant(biases[j])
+            model.addLConstr(h[j] == fun, name=str(layer_num) + "c")
 
     return model, h

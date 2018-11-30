@@ -275,6 +275,7 @@ class Oracle:
         a = 0
         b = 0
         temp = ['box']*a + ['LP'] * (len(self.layer_types) -b - a) + ['box']*b
+        #temp = ['LP'] *2 + ['box'] + ['LP'] * 9
         return temp
 
 
@@ -409,11 +410,12 @@ if __name__ == '__main__':
         print('usage: python3.6 ' + argv[0] + ' net.txt spec.txt [timeout]')
         exit(1)
 
-    # m = Model()
-    # h = m.addVars(2,lb=[-1, -2], ub=[2, 3])
-    # m.write("debug.lp")
-    # add_ReLu(m,h,0)
-    # m.write("debug_end.lp")
+    #m = Model()
+    #h = m.addVars(2,lb=[-1, -2], ub=[2, 3])
+    #m.write("debug.lp")
+    #add_ReLu(m,h,0)
+    #add_affine(m,np.array([[1 ,2],[3,4]]), np.array([5, 6]),h,0)
+    #m.write("debug_end.lp")
 
     netname = argv[1]
     specname = argv[2]
