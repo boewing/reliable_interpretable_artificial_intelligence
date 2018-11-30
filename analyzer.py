@@ -314,7 +314,7 @@ def no_time_left(start):
 
 def time_left(start):
     T_limit = 420.0  #seconds
-    left = time.time() - start
+    left = T_limit - (time.time() - start)
     if left < 0:
         return 0.0
     return left
@@ -342,10 +342,11 @@ def analyze(nn, LB_N0, UB_N0, label):
         myLP = net_in_LP(LB_N0, UB_N0, 0, label, start)
 
     strategyno = 0
+    timeout = False
     for layerno in range(numlayer):
         if (nn.layertypes[layerno] in ['ReLU', 'Affine']):
 
-            if no_time_left(start):
+            if timeout or no_time_left(start):
                 strategy[strategyno] = 'box'
                 print("TimeLimit reached -> change to box strategy")
             print("add affine layer to problem", strategyno, "strategy", strategy[strategyno])
@@ -377,7 +378,7 @@ def analyze(nn, LB_N0, UB_N0, label):
 
             # handle ReLU layer
             if (nn.layertypes[layerno] == 'ReLU'):
-                if no_time_left(start):
+                if timeout or no_time_left(start):
                     strategy[strategyno] = 'box'
                     print("TimeLimit reached -> change to box strategy")
                 print("add relu layer to problem", strategyno, "strategy", strategy[strategyno])
@@ -385,20 +386,19 @@ def analyze(nn, LB_N0, UB_N0, label):
                 num_out_pixels = len(weights)
                 if strategy[strategyno] == 'box':
                     if element == None:  # we come from LP and go to box
-                        LB, UB = myLP.go_to_box(approximative=False)
-                        element = bounds_to_elina_interval(man, LB, UB)
-                        element = relu_box_layerwise(man, True, element, 0, num_out_pixels)
+                        element = LP_to_elina(man, myLP, num_out_pixels)
                         myLP = None
                     elif myLP == None:  # we stay in box
                         element = relu_box_layerwise(man, True, element, 0, num_out_pixels)
                 elif strategy[strategyno] == 'LP':
                     if element == None:  # we stay in LP
-                        myLP.add_ReLu()
-                    elif myLP == None:  # we come from box and go to LP
+                            myLP.add_ReLu()
+                    elif myLP == None and (not timeout):  # we come from box and go to LP
                         LB, UB = alina_interval_to_bounds(man, element)
                         myLP = net_in_LP(LB, UB, 0, label, start)
                         myLP.add_ReLu()
                         element = None
+
                 else:
                     print("not valid strategy", strategy[strategyno])
                     exit(0)
@@ -467,6 +467,13 @@ def analyze(nn, LB_N0, UB_N0, label):
     elina_manager_free(man)
     print("time", datetime.datetime.now().time())
     return predicted_label, verified_flag
+
+
+def LP_to_elina(man, myLP, num_out_pixels):
+    LB, UB = myLP.go_to_box(approximative=False)
+    element = bounds_to_elina_interval(man, LB, UB)
+    element = relu_box_layerwise(man, True, element, 0, num_out_pixels)
+    return element
 
 
 if __name__ == '__main__':

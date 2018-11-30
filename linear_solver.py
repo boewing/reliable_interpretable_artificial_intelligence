@@ -1,5 +1,9 @@
 from gurobipy import *
 import numpy as np
+import time
+
+class TimeOut(Exception):
+    pass
 
 
 class net_in_LP:
@@ -10,20 +14,25 @@ class net_in_LP:
         self.label = label
         self.start = start
 
+        # the bounds before the last ReLu Layer
+        self.last_bounds_LB = LB
+        self.last_bounds_UB = UB
+        self.T_limit = 1e10
+
     def add_ReLu(self):
         self.last_layer_num += 1
-        LB, UB = self.go_to_box(approximative=True)
+        self.last_bounds_LB, self.last_bounds_UB = self.go_to_box(approximative=True)
         n = len(self.last_layer)
 
         for k in range(n):
-            if LB[k] < 0:
-                if UB[k] <= 0:
+            if self.last_bounds_LB[k] < 0:
+                if self.last_bounds_UB[k] <= 0:
                     self.last_layer[k] = self.model.addVar(lb=0, ub=0)
                 else:
                     temp = self.model.addVar(lb=0, ub=GRB.INFINITY)
                     self.model.addLConstr(temp >= self.last_layer[k], str(self.last_layer_num) + "cc" + str(k))
-                    lam = UB[k] / (UB[k] - LB[k])
-                    d = -LB[k] * lam
+                    lam = self.last_bounds_UB[k] / (self.last_bounds_UB[k] - self.last_bounds_LB[k])
+                    d = -self.last_bounds_LB[k] * lam
                     self.model.addLConstr(temp <= lam * self.last_layer[k] + d, str(self.last_layer_num) + "ccc" + str(k))
 
                     self.last_layer[k] = temp
@@ -49,11 +58,17 @@ class net_in_LP:
             self.model.setObjective(objective, GRB.MINIMIZE)
         if approximative:
             self.model.setParam('Cutoff', 0.0)
+        #  rest_time = self.T_limit - (time.time() - self.start)
+        #  if rest_time < 0:
+        #    raise TimeOut
+        #  self.model.setParam('TimeLimit', rest_time)
         self.model.optimize()
         if self.model.Status == GRB.OPTIMAL:
             return objective.x
         elif self.model.Status == GRB.CUTOFF:
             return 0.0
+        elif self.model.Status == GRB.TIME_LIMIT:
+            raise TimeOut
         else:
             assert False
 
