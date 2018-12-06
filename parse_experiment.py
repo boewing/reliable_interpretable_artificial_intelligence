@@ -22,7 +22,7 @@ class Exp:
 				line+="error"+delim
 
 		if not self.error=="error":
-			line+=delim+str(self.total_time)
+			line+=delim+str(self.total_time)+delim+self.result
 		return line
 
 	def parse(self, lines):
@@ -46,6 +46,12 @@ class Exp:
 		#		self.error="error"	
 		#		return
 		#	self.times.append(datetime.strptime(lines[l][5:],"%H:%M:%S.%f"))
+		layer_num=0
+		for l in range(3, len(lines)):
+			if lines[l].startswith("add"):
+				if lines[l-1].startswith("TimeLimit"):
+					self.strategy[layer_num]+=" (timelimit box)"
+				layer_num+=1
 		
 		
 		for l in range(3, len(lines)):
@@ -53,16 +59,14 @@ class Exp:
 				self.times.append(datetime.strptime(lines[l][5:],"%H:%M:%S.%f"))
 			elif lines[l]=="verified" or lines[l]=="can not be verified":
 				self.result = lines[l]
-			elif lines[l].startswith("TimeLimit"):
-				self.result = "TimeLimit"
 			elif lines[l].startswith("analysis"):
 				self.total_time=float(lines[l][16:-9])
 
 if __name__ == '__main__':
 	out=""
-	files = glob("/home/riai2018/riai/exp2/*.log")
+	files = glob("/home/riai2018/riai/exp2/*.txt")
 	#files.sort()
-	#print(files)
+	print(files)
 	for file in files:
 		print(file)
 		exp_num=os.path.basename(file)[3:-4]
