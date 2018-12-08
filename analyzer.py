@@ -2,6 +2,9 @@ import sys
 
 sys.path.insert(0, '../ELINA/python_interface/')
 
+for path in sys.path:
+    print(path)
+
 import numpy as np
 import re
 import csv
@@ -25,7 +28,7 @@ from linear_solver import *
 libc = CDLL(find_library('c'))
 cstdout = c_void_p.in_dll(libc, 'stdout')
 
-STRAT = None
+#STRAT = None
 
 
 class layers:
@@ -294,33 +297,36 @@ class Oracle:
         return temp
 
     def get_dynamic_strategy(self):
-        shape = nn.get_shape()
+        shape = self.nn.get_shape()
         width = shape[1]
         length = len(shape)
 
         b = 0
-        a = 0 + 0*round(10 * max([0, width - 100]) * (length - 3) * epsilon)
+        a = 0
         temp = ['box'] * a + ['LP'] * (len(self.layer_types) - b - a) + ['box'] * b
 
         return temp
 
 
 def no_time_left(start):
-    T_limit = 420.0  #seconds
+    T_limit = 82000.0  #seconds
     if(time.time() - start >= T_limit):
         return True
     return False
 
 
 def time_left(start):
-    T_limit = 420.0  #seconds
+    T_limit = 82000.0  #seconds
     left = T_limit - (time.time() - start)
     if left < 0:
         return 0.0
     return left
 
 
-def analyze(nn, LB_N0, UB_N0, label):
+def analyze(nn, LB_N0, UB_N0, label, *args):
+    if LB_N0[0] == UB_N0[0]:
+        return get_label(nn,LB_N0), None
+
     start = time.time()
     nn.ffn_counter = 0
     numlayer = nn.numlayer
@@ -329,10 +335,10 @@ def analyze(nn, LB_N0, UB_N0, label):
     print("time", datetime.datetime.now().time())
     oracle = Oracle(nn)
     # strategy = oracle.get_strategy()
-    if len(STRAT) == 0:
+    if len(args) == 0 or len(args[0]) == 0:
         strategy = oracle.get_dynamic_strategy()
     else:
-        strategy = STRAT
+        strategy = args[0]
     # print (strategy)
     if strategy[0] == 'box':
         element = bounds_to_elina_interval(man, LB_N0, UB_N0)
@@ -506,16 +512,14 @@ if __name__ == '__main__':
     x0_low, x0_high = parse_spec(specstring)
     LB_N0, UB_N0 = get_perturbed_image(x0_low, 0)
 
-    #  label, _ = analyze(nn,LB_N0,UB_N0,0)
-    own_label = get_label(nn, LB_N0)
-    label = own_label
+    label, _ = analyze(nn,LB_N0,UB_N0,0, STRAT)
+    #own_label = get_label(nn, LB_N0)
+    #label = own_label
     #  print("##############label", label, "own_label", own_label)
-    if label != own_label:
-        exit(0)
     start = time.time()
     if (label == int(x0_low[0])):
         LB_N0, UB_N0 = get_perturbed_image(x0_low, epsilon)
-        _, verified_flag = analyze(nn, LB_N0, UB_N0, label)
+        _, verified_flag = analyze(nn, LB_N0, UB_N0, label, STRAT)
         if (verified_flag):
             print("verified")
         else:
