@@ -1,4 +1,5 @@
 import numpy as np
+from io import StringIO, BytesIO
 import re
 import csv
 import ctypes
@@ -90,9 +91,10 @@ def parse_net(text):
 def parse_spec(text):
     text = text.replace("[", "")
     text = text.replace("]", "")
-    with open('dummy', 'w') as my_file:
-        my_file.write(text)
-    data = np.genfromtxt('dummy', delimiter=',', dtype=np.double)
+    stringhandle = StringIO(str(text))
+    #with open('dummy', 'w') as my_file:
+    #    my_file.write(text)
+    data = np.loadtxt(stringhandle, delimiter=',', dtype=np.double)
     low = np.copy(data[:, 0])
     high = np.copy(data[:, 1])
     return low, high
@@ -165,6 +167,10 @@ if __name__ == '__main__':
     # if len(argv) < 3 or len(argv) > 4:
     #    print('usage: python3.6 ' + argv[0] + ' net.txt spec.txt [timeout]')
     #    exit(1)
+
+    print(" LP"*18)
+    print(" ")
+    print(" ")
 
     netname = argv[1]
     specname = argv[2]

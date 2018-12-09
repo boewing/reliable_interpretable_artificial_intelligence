@@ -31,10 +31,11 @@ def run_binary_epsilon_search(lower_epsilon, upper_epsilon, cmd_first_part, sear
 
 def run_and_print_search(lower_epsilon, upper_epsilon, cmd_first_part, netname, specname):
 	lower_epsilon, upper_epsilon = run_binary_epsilon_search(lower_epsilon, upper_epsilon, cmd_first_part, 0, netname, specname)
-	print ("########",cmd_first_part, "      ")
-	print ("lower epsilon",lower_epsilon,"upper epsilon", upper_epsilon)
-	file = open("logs/log_"+netname +"_"+specname + ".txt","w")
-	file.write(netname +"_"+specname +"; " + str(lower_epsilon) + "; " + str(upper_epsilon))
+	#print ("########",cmd_first_part, "      ")
+	#print ("lower epsilon",lower_epsilon,"upper epsilon", upper_epsilon)
+	#file = open("logs/log_"+netname +"_"+specname + ".txt","w")
+	#file.write(netname +"_"+specname +"; " + str(lower_epsilon) + "; " + str(upper_epsilon))
+	print(netname +"_"+specname +"; " + str(lower_epsilon) + "; " + str(upper_epsilon))
 
 
 if __name__ == '__main__':
