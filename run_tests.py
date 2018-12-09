@@ -33,6 +33,8 @@ def run_and_print_search(lower_epsilon, upper_epsilon, cmd_first_part, netname, 
 	lower_epsilon, upper_epsilon = run_binary_epsilon_search(lower_epsilon, upper_epsilon, cmd_first_part, 0, netname, specname)
 	print ("########",cmd_first_part, "      ")
 	print ("lower epsilon",lower_epsilon,"upper epsilon", upper_epsilon)
+	file = open("logs/log_"+netname +"_"+specname + ".txt","w")
+	file.write(netname +"_"+specname +"; " + str(lower_epsilon) + "; " + str(upper_epsilon))
 
 
 if __name__ == '__main__':
@@ -41,7 +43,7 @@ if __name__ == '__main__':
 	global_upper_epsilon = 0.1
 	netpath = argv[1]
 	specpath = argv[2]
-	cmd_first_part = "python3.6 analyzer.py " + netpath + " " + specpath
+	cmd_first_part = "python noelina_analyzer.py " + netpath + " " + specpath
 
 	netname = netpath[netpath.find("mnist_relu"):netpath.find(".txt")]
 	specname = specpath[specpath.find("img"):specpath.find(".txt")]
