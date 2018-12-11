@@ -1,9 +1,37 @@
 from gurobipy import *
+import threading
 import numpy as np
 import time
 
 class TimeOut(Exception):
     pass
+
+class myThread (threading.Thread):
+    def __init__(self, threadID, model):
+        threading.Thread.__init__(self)
+        self.threadID = threadID
+        self.model = model
+        self.objective = None
+        self.status = None
+
+    def run(self):
+        #print("Starting " + str(self.threadID))
+        self.model.optimize()
+        objective = self.model.getObjective()
+        #print("Exiting " + str(self.threadID))
+
+        if self.model.Status == GRB.OPTIMAL:
+            self.objective = objective.getValue()
+        elif self.model.Status == GRB.CUTOFF:
+            self.objective = 0.0
+        elif self.model.Status == GRB.TIME_LIMIT:
+            raise TimeOut
+        else:
+            assert False
+        #print("objective value = ", self.objective)
+
+    def get_result(self):
+        return self.objective
 
 
 class net_in_LP:
@@ -16,6 +44,7 @@ class net_in_LP:
         #bounds to model
         self.model = Model("myLP")
         self.model.setParam('OutputFlag', False)
+        self.model.setParam('Method', 1)
         self.last_layer = self.model.addVars(len(LB), name=str(layer_num) + "v", lb=LB, ub=UB)
 
         # the bounds before the last ReLu Layer
@@ -68,9 +97,43 @@ class net_in_LP:
         n = len(self.last_layer)
         UB = []
         LB = []
+        threads_ub = []
+        threads_lb = []
         for i in range(n):
-            UB.append(self.find_one_bound(self.last_layer[i], True, approximative))
-            LB.append(self.find_one_bound(self.last_layer[i], False, approximative))
+            self.model.setObjective(self.last_layer[i], GRB.MAXIMIZE)
+            if approximative:
+                self.model.setParam('Cutoff', 0.0)
+            else:
+                self.model.setParam('Cutoff', -GRB.INFINITY)
+
+            self.model.update()
+            threads_ub.append(myThread(i,self.model.copy()))
+            threads_ub[i].start()
+
+            self.model.setObjective(self.last_layer[i], GRB.MINIMIZE)
+            if approximative:
+                self.model.setParam('Cutoff', 0.0)
+            else:
+                self.model.setParam('Cutoff', GRB.INFINITY)
+
+            self.model.update()
+            threads_lb.append(myThread(i, self.model.copy()))
+            threads_lb[i].start()
+
+        for i in range(n):
+            threads_ub[i].join()
+            UB.append(threads_ub[i].get_result())
+            threads_lb[i].join()
+            LB.append(threads_lb[i].get_result())
+
+            #temp_ub = self.find_one_bound(self.last_layer[i], True, approximative)
+            #temp_lb = self.find_one_bound(self.last_layer[i], False, approximative)
+
+            #print("old UB = ", temp_ub, "; new UB = ", UB[i])
+            #assert(abs(UB[i] - temp_ub) < 1e-5)
+            #assert(abs(LB[i] - temp_lb) < 1e-5)
+            #UB.append(self.find_one_bound(self.last_layer[i], True, approximative))
+            #LB.append(self.find_one_bound(self.last_layer[i], False, approximative))
 
         return LB, UB
 
@@ -87,6 +150,7 @@ class net_in_LP:
                 self.model.setParam('Cutoff', 0.0)
             else:
                 self.model.setParam('Cutoff', GRB.INFINITY)
+
         #  rest_time = self.T_limit - (time.time() - self.start)
         #  if rest_time < 0:
         #    raise TimeOut
