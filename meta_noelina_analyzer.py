@@ -2,9 +2,9 @@ from noelina_analyzer import *
 import numpy as np
 
 def find_border_eps(netname, specname, strategy):
-    e = 0.005
     e_l = 0.005
     e_u = 0.1
+    e = (e_l + e_u)/2
     while e_u - e_l > 0.001:
         v = verify(netname, specname, e, strategy)
         if v is True:

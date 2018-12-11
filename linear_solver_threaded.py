@@ -94,37 +94,49 @@ class net_in_LP:
         self.last_layer = h
 
     def go_to_box(self, approximative):
+        jobs_left = 20
         n = len(self.last_layer)
         UB = []
         LB = []
         threads_ub = []
         threads_lb = []
-        for i in range(n):
-            self.model.setObjective(self.last_layer[i], GRB.MAXIMIZE)
-            if approximative:
-                self.model.setParam('Cutoff', 0.0)
-            else:
-                self.model.setParam('Cutoff', -GRB.INFINITY)
+        i = 0
+        end = 0
+        while True:
+            if i < n and jobs_left > 0:
+                self.model.setObjective(self.last_layer[i], GRB.MAXIMIZE)
+                if approximative:
+                    self.model.setParam('Cutoff', 0.0)
+                else:
+                    self.model.setParam('Cutoff', -GRB.INFINITY)
 
-            self.model.update()
-            threads_ub.append(myThread(i,self.model.copy()))
-            threads_ub[i].start()
+                self.model.update()
+                threads_ub.append(myThread(i,self.model.copy()))
+                threads_ub[i].start()
+                jobs_left += -1
 
-            self.model.setObjective(self.last_layer[i], GRB.MINIMIZE)
-            if approximative:
-                self.model.setParam('Cutoff', 0.0)
-            else:
-                self.model.setParam('Cutoff', GRB.INFINITY)
+                self.model.setObjective(self.last_layer[i], GRB.MINIMIZE)
+                if approximative:
+                    self.model.setParam('Cutoff', 0.0)
+                else:
+                    self.model.setParam('Cutoff', GRB.INFINITY)
 
-            self.model.update()
-            threads_lb.append(myThread(i, self.model.copy()))
-            threads_lb[i].start()
+                self.model.update()
+                threads_lb.append(myThread(i, self.model.copy()))
+                threads_lb[i].start()
+                jobs_left += -1
 
-        for i in range(n):
-            threads_ub[i].join()
-            UB.append(threads_ub[i].get_result())
-            threads_lb[i].join()
-            LB.append(threads_lb[i].get_result())
+                i += 1
+
+            if i == n or jobs_left <= 0:
+                threads_ub[end].join()
+                UB.append(threads_ub[end].get_result())
+                threads_lb[end].join()
+                LB.append(threads_lb[end].get_result())
+                jobs_left += 2
+                end += 1
+            if end == n:
+                break
 
             #temp_ub = self.find_one_bound(self.last_layer[i], True, approximative)
             #temp_lb = self.find_one_bound(self.last_layer[i], False, approximative)
