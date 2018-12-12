@@ -1,5 +1,5 @@
 import numpy as np
-from io import StringIO, BytesIO
+from io import StringIO
 import re
 import csv
 import ctypes

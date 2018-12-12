@@ -1,5 +1,4 @@
 from noelina_analyzer import *
-import numpy as np
 
 def find_border_eps(netname, specname, strategy):
     e_l = 0.005

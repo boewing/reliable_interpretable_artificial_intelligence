@@ -1,6 +1,6 @@
 from gurobipy import *
 import threading
-import numpy as np
+import multiprocessing
 import time
 
 class TimeOut(Exception):
@@ -51,6 +51,8 @@ class net_in_LP:
         self.last_bounds_LB = LB
         self.last_bounds_UB = UB
         self.T_limit = 1e10
+        self.threads_used = multiprocessing.cpu_count()*4
+        print("the number of threads used is", self.threads_used)
 
     def add_ReLu(self):
         self.last_layer_num += 1
@@ -94,7 +96,10 @@ class net_in_LP:
         self.last_layer = h
 
     def go_to_box(self, approximative):
-        jobs_left = 20
+        jobs_left = self.threads_used
+        progressbar = 0
+        print("¦==============================¦")
+        print("¦",end='',flush=True)
         n = len(self.last_layer)
         UB = []
         LB = []
@@ -135,8 +140,13 @@ class net_in_LP:
                 LB.append(threads_lb[end].get_result())
                 jobs_left += 2
                 end += 1
+                while progressbar < 30*end/n:
+                    print("=", end='',flush=True)
+                    progressbar += 1
             if end == n:
                 break
+
+        print('¦')
 
             #temp_ub = self.find_one_bound(self.last_layer[i], True, approximative)
             #temp_lb = self.find_one_bound(self.last_layer[i], False, approximative)
