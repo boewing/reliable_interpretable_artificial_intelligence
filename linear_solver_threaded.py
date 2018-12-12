@@ -28,6 +28,10 @@ class myThread (threading.Thread):
             raise TimeOut
         else:
             assert False
+
+        temp = self.model
+        self.model = None
+        del temp
         #print("objective value = ", self.objective)
 
     def get_result(self):
@@ -51,7 +55,7 @@ class net_in_LP:
         self.last_bounds_LB = LB
         self.last_bounds_UB = UB
         self.T_limit = 1e10
-        self.threads_used = multiprocessing.cpu_count()*4
+        self.threads_used = multiprocessing.cpu_count()*2
         print("the number of threads used is", self.threads_used)
 
     def add_ReLu(self):
@@ -105,9 +109,14 @@ class net_in_LP:
         LB = []
         threads_ub = []
         threads_lb = []
+        # models_ub = []
+        # models_lb = []
         i = 0
         end = 0
         while True:
+            # if i < self.threads_used:
+            #     models_lb.append(self.model.copy())
+            #     models_ub.append(self.model.copy())
             if i < n and jobs_left > 0:
                 self.model.setObjective(self.last_layer[i], GRB.MAXIMIZE)
                 if approximative:
@@ -136,8 +145,10 @@ class net_in_LP:
             if i == n or jobs_left <= 0:
                 threads_ub[end].join()
                 UB.append(threads_ub[end].get_result())
+                threads_ub[end] = None
                 threads_lb[end].join()
                 LB.append(threads_lb[end].get_result())
+                threads_lb[end] = None
                 jobs_left += 2
                 end += 1
                 while progressbar < 30*end/n:
