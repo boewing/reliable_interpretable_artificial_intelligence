@@ -30,7 +30,7 @@ class net_in_LP:
         self.last_bounds_LB = LB
         self.last_bounds_UB = UB
         self.T_limit = 1e10
-        self.processes_used = multiprocessing.cpu_count()
+        self.processes_used = max(multiprocessing.cpu_count() - 1, 2)
         print("the number of processes used is", self.processes_used)
 
     def add_ReLu(self):
@@ -134,15 +134,16 @@ class net_in_LP:
 
             if i == n or jobs_left <= 0:
 
+                os.waitpid(proc_ub[end], 0)
                 rhand = os.fdopen(fd_ub[end],'r',1)
                 UB.append(float(rhand.readline()))
                 rhand.close()
-                os.kill(proc_ub[end], signal.SIGKILL)
 
+                os.waitpid(proc_lb[end], 0)
                 rhand = os.fdopen(fd_lb[end],'r',1)
                 LB.append(float(rhand.readline()))
                 rhand.close()
-                os.kill(proc_lb[end], signal.SIGKILL)
+                #os.kill(proc_lb[end], signal.SIGKILL)
 
                 jobs_left += 2
                 end += 1
