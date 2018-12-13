@@ -1,4 +1,5 @@
 import os
+import signal
 import sys
 from gurobipy import *
 import multiprocessing
@@ -102,9 +103,10 @@ class net_in_LP:
                 assert False
 
             whand.write(str(objective) + "\n")
-            sys.exit()
+            #sys.exit()
+            os._exit(0)
 
-        return rend
+        return pid, rend
 
     def go_to_box(self, approximative):
         jobs_left = self.processes_used
@@ -116,13 +118,15 @@ class net_in_LP:
         LB = []
         fd_ub = {}
         fd_lb = {}
+        proc_ub = {}
+        proc_lb = {}
 
         i = 0
         end = 0
         while True:
             if i < n and jobs_left > 0:
-                fd_ub[i] = self.start_job(i, approximative, True)
-                fd_lb[i] = self.start_job(i, approximative, False)
+                proc_ub[i], fd_ub[i] = self.start_job(i, approximative, True)
+                proc_lb[i], fd_lb[i] = self.start_job(i, approximative, False)
 
                 jobs_left += -2
                 #print("I am from the mother", os.getpid())
@@ -133,10 +137,12 @@ class net_in_LP:
                 rhand = os.fdopen(fd_ub[end],'r',1)
                 UB.append(float(rhand.readline()))
                 rhand.close()
+                os.kill(proc_ub[end], signal.SIGKILL)
 
                 rhand = os.fdopen(fd_lb[end],'r',1)
                 LB.append(float(rhand.readline()))
                 rhand.close()
+                os.kill(proc_lb[end], signal.SIGKILL)
 
                 jobs_left += 2
                 end += 1
