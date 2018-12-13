@@ -70,39 +70,41 @@ class net_in_LP:
 
         self.last_layer = h
 
-    def start_job(self, i, approximative, MAXIMIZE):
+    def start_job(self, indices, approximative, MAXIMIZE):
         rend, wend = os.pipe()
-        if MAXIMIZE:
-            self.model.setObjective(self.last_layer[i], GRB.MAXIMIZE)
-            if approximative:
-                self.model.setParam('Cutoff', 0.0)
-            else:
-                self.model.setParam('Cutoff', -GRB.INFINITY)
-        else:
-            self.model.setObjective(self.last_layer[i], GRB.MINIMIZE)
-            if approximative:
-                self.model.setParam('Cutoff', 0.0)
-            else:
-                self.model.setParam('Cutoff', GRB.INFINITY)
 
         pid = os.fork()
         if pid == 0:
-            # print("I am from the child", os.getpid())
             whand = os.fdopen(wend, 'w', 1)
-            self.model.optimize()
-            objective = self.model.getObjective()
+            for i in indices:
+                if MAXIMIZE:
+                    self.model.setObjective(self.last_layer[i], GRB.MAXIMIZE)
+                    if approximative:
+                        self.model.setParam('Cutoff', 0.0)
+                    else:
+                        self.model.setParam('Cutoff', -GRB.INFINITY)
+                else:
+                    self.model.setObjective(self.last_layer[i], GRB.MINIMIZE)
+                    if approximative:
+                        self.model.setParam('Cutoff', 0.0)
+                    else:
+                        self.model.setParam('Cutoff', GRB.INFINITY)
+                # print("I am from the child", os.getpid())
+                self.model.optimize()
+                objective = self.model.getObjective()
 
-            if self.model.Status == GRB.OPTIMAL:
-                objective = objective.getValue()
-            elif self.model.Status == GRB.CUTOFF:
-                objective = 0.0
-            elif self.model.Status == GRB.TIME_LIMIT:
-                whand.write("TimeOut")
-                raise TimeOut
-            else:
-                assert False
+                if self.model.Status == GRB.OPTIMAL:
+                    objective = objective.getValue()
+                elif self.model.Status == GRB.CUTOFF:
+                    objective = 0.0
+                elif self.model.Status == GRB.TIME_LIMIT:
+                    whand.write("TimeOut")
+                    raise TimeOut
+                else:
+                    assert False
 
-            whand.write(str(objective) + "\n")
+                whand.write(str(objective) + "\n")
+
             whand.close()
             #sys.exit()
             os._exit(0)
@@ -124,38 +126,72 @@ class net_in_LP:
 
         i = 0
         end = 0
-        while True:
-            if i < n and jobs_left > 0:
-                proc_ub[i], fd_ub[i] = self.start_job(i, approximative, True)
-                proc_lb[i], fd_lb[i] = self.start_job(i, approximative, False)
 
-                jobs_left += -2
-                #print("I am from the mother", os.getpid())
+        #n = 77
+        #self.processes_used = 8
+        indices = {}
+        parallel = int(0.5 + self.processes_used/2)
+        block_len = int(0.5 + n/parallel)
+        for k in range(parallel):
+            indices[k] = []
+            while i < (k+1)*n/parallel and i < n:
+                indices[k].append(i)
                 i += 1
+        #print(indices)
 
-            if i == n or jobs_left <= 0:
+        for k in range(parallel):
+            proc_ub[k], fd_ub[k] = self.start_job(indices[k], approximative, True)
+            proc_lb[k], fd_lb[k] = self.start_job(indices[k], approximative, False)
 
-                os.waitpid(proc_ub[end], 0)
-                rhand = os.fdopen(fd_ub[end],'r',1)
+        for k in range(parallel):
+            os.waitpid(proc_ub[k], 0)
+            rhand = os.fdopen(fd_ub[k], 'r', 1)
+            for i in indices[k]:
                 UB.append(float(rhand.readline()))
-                rhand.close()
+            rhand.close()
+            del fd_ub[k]
 
-                os.waitpid(proc_lb[end], 0)
-                rhand = os.fdopen(fd_lb[end],'r',1)
+            os.waitpid(proc_lb[k], 0)
+            rhand = os.fdopen(fd_lb[k], 'r', 1)
+            for i in indices[k]:
                 LB.append(float(rhand.readline()))
-                rhand.close()
-                #os.kill(proc_lb[end], signal.SIGKILL)
+            rhand.close()
+            del fd_lb[k]
 
-                jobs_left += 2
-                end += 1
+            while progressbar < 30 * k / (parallel):
+                print("=", end='', flush=True)
+                progressbar += 1
 
-                while progressbar < 30*end/n:
-                    print("=", end='',flush=True)
-                    progressbar += 1
-            if end == n:
-                del fd_ub
-                del fd_lb
-                break
+
+        # while True:
+        #     if k < n and jobs_left > 0:
+        #         proc_ub[k], fd_ub[k] = self.start_job(indices[k], approximative, True)
+        #         proc_lb[k], fd_lb[k] = self.start_job(indices[k], approximative, False)
+        #
+        #         jobs_left += -2
+        #         #print("I am from the mother", os.getpid())
+        #         k += 1
+        #
+        #     if i == n or jobs_left <= 0:
+        #
+        #         os.waitpid(proc_ub[end], 0)
+        #         rhand = os.fdopen(fd_ub[end],'r',1)
+        #         UB.append(float(rhand.readline()))
+        #         rhand.close()
+        #
+        #         os.waitpid(proc_lb[end], 0)
+        #         rhand = os.fdopen(fd_lb[end],'r',1)
+        #         LB.append(float(rhand.readline()))
+        #         rhand.close()
+        #         #os.kill(proc_lb[end], signal.SIGKILL)
+        #
+        #         jobs_left += 2
+        #         end += 1
+        #
+        #     if end == n:
+        #         del fd_ub
+        #         del fd_lb
+        #         break
 
         print('¦')
         return LB, UB
