@@ -103,6 +103,7 @@ class net_in_LP:
                 assert False
 
             whand.write(str(objective) + "\n")
+            whand.close()
             #sys.exit()
             os._exit(0)
 
