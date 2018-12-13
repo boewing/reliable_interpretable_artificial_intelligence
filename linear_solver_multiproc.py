@@ -1,6 +1,7 @@
 import os
+import signal
+import sys
 from gurobipy import *
-import threading
 import multiprocessing
 import time
 
@@ -8,56 +9,6 @@ global mod
 
 class TimeOut(Exception):
     pass
-
-def run(model, i):
-    print("process started with number ",i)
-    global mod
-    print(mod)
-    mod.optimize()
-    objective = mod.getObjective()
-    #print("Exiting " + str(self.threadID))
-
-    if mod.Status == GRB.OPTIMAL:
-        temp = float(objective.getValue())
-        print(temp)
-        return temp
-    elif mod.Status == GRB.CUTOFF:
-        return 0.0
-    elif mod.Status == GRB.TIME_LIMIT:
-        raise TimeOut
-    else:
-        assert False
-
-class myThread (threading.Thread):
-    def __init__(self, threadID, model):
-        threading.Thread.__init__(self)
-        self.threadID = threadID
-        self.model = model
-        self.objective = None
-        self.status = None
-
-    def run(self):
-        #print("Starting " + str(self.threadID))
-        self.model.optimize()
-        objective = self.model.getObjective()
-        #print("Exiting " + str(self.threadID))
-
-        if self.model.Status == GRB.OPTIMAL:
-            self.objective = objective.getValue()
-        elif self.model.Status == GRB.CUTOFF:
-            self.objective = 0.0
-        elif self.model.Status == GRB.TIME_LIMIT:
-            raise TimeOut
-        else:
-            assert False
-
-        temp = self.model
-        self.model = None
-        del temp
-        #print("objective value = ", self.objective)
-
-    def get_result(self):
-        return self.objective
 
 
 class net_in_LP:
@@ -79,8 +30,8 @@ class net_in_LP:
         self.last_bounds_LB = LB
         self.last_bounds_UB = UB
         self.T_limit = 1e10
-        self.threads_used = multiprocessing.cpu_count()
-        print("the number of threads used is", self.threads_used)
+        self.processes_used = max(multiprocessing.cpu_count() - 1, 2)
+        print("the number of processes used is", self.processes_used)
 
     def add_ReLu(self):
         self.last_layer_num += 1
@@ -109,10 +60,6 @@ class net_in_LP:
         assert(m == len(biases))
 
         h = self.model.addVars(m, name=str(self.last_layer_num) + "v", lb=-GRB.INFINITY, ub=GRB.INFINITY)
-        #  print({i: e for i, e in enumerate(weights[1, :])})
-        #  print(last_layer)
-            # test = sorted(last_layer.iterkeys())
-            # assert(test == list(range(n)))
 
         # here we create the linear expression in a very efficient manner. but a ordered list of gurobi variables is needed
         vars = [var for (key, var) in sorted(self.last_layer.iteritems())]
@@ -123,169 +70,95 @@ class net_in_LP:
 
         self.last_layer = h
 
+    def start_job(self, i, approximative, MAXIMIZE):
+        rend, wend = os.pipe()
+        if MAXIMIZE:
+            self.model.setObjective(self.last_layer[i], GRB.MAXIMIZE)
+            if approximative:
+                self.model.setParam('Cutoff', 0.0)
+            else:
+                self.model.setParam('Cutoff', -GRB.INFINITY)
+        else:
+            self.model.setObjective(self.last_layer[i], GRB.MINIMIZE)
+            if approximative:
+                self.model.setParam('Cutoff', 0.0)
+            else:
+                self.model.setParam('Cutoff', GRB.INFINITY)
+
+        pid = os.fork()
+        if pid == 0:
+            # print("I am from the child", os.getpid())
+            whand = os.fdopen(wend, 'w', 1)
+            self.model.optimize()
+            objective = self.model.getObjective()
+
+            if self.model.Status == GRB.OPTIMAL:
+                objective = objective.getValue()
+            elif self.model.Status == GRB.CUTOFF:
+                objective = 0.0
+            elif self.model.Status == GRB.TIME_LIMIT:
+                whand.write("TimeOut")
+                raise TimeOut
+            else:
+                assert False
+
+            whand.write(str(objective) + "\n")
+            whand.close()
+            #sys.exit()
+            os._exit(0)
+
+        return pid, rend
+
     def go_to_box(self, approximative):
-        jobs_left = self.threads_used
+        jobs_left = self.processes_used
         progressbar = 0
         print("¦==============================¦")
         print("¦",end='', flush=True)
         n = len(self.last_layer)
         UB = []
         LB = []
-        threads_ub = {}
-        threads_lb = {}
-
-        if not os.path.exists("tempsolve"):
-            os.makedirs("tempsolve")
+        fd_ub = {}
+        fd_lb = {}
+        proc_ub = {}
+        proc_lb = {}
 
         i = 0
         end = 0
         while True:
             if i < n and jobs_left > 0:
-                self.model.setObjective(self.last_layer[i], GRB.MAXIMIZE)
-                if approximative:
-                    self.model.setParam('Cutoff', 0.0)
-                else:
-                    self.model.setParam('Cutoff', -GRB.INFINITY)
+                proc_ub[i], fd_ub[i] = self.start_job(i, approximative, True)
+                proc_lb[i], fd_lb[i] = self.start_job(i, approximative, False)
 
-                pid = os.fork()
-                if pid == 0:
-                    #print("I am from the child", os.getpid())
-                    file = open("tempsolve/UB" + str(i) + ".txt","w")
-                    #print(self.model)
-                    self.model.optimize()
-                    objective = self.model.getObjective()
-                    # print("Exiting " + str(self.threadID))
-
-                    if self.model.Status == GRB.OPTIMAL:
-                        objective = objective.getValue()
-                    elif self.model.Status == GRB.CUTOFF:
-                        objective = 0.0
-                    elif self.model.Status == GRB.TIME_LIMIT:
-                        file.write("TimeOut")
-                        raise TimeOut
-                    else:
-                        assert False
-
-                    #print(objective)
-                    file.write(str(objective))
-                    file.close()
-                    os._exit(0)
-
-                #res = solve_LP.main(self.model, pool)
-                #print(proc.get())
-                #threads_ub[i] = pool.apply_async(run, (mod, i))
-                #threads_ub[i] = myThread(i,self.model.copy())
-                #threads_ub[i].start()
-                jobs_left += -1
-
-                self.model.setObjective(self.last_layer[i], GRB.MINIMIZE)
-                if approximative:
-                    self.model.setParam('Cutoff', 0.0)
-                else:
-                    self.model.setParam('Cutoff', GRB.INFINITY)
-
-                pid = os.fork()
-                if pid == 0:
-                    # print("I am from the child", os.getpid())
-                    file = open("tempsolve/LB" + str(i) + ".txt", "w")
-                    # print(self.model)
-                    self.model.optimize()
-                    objective = self.model.getObjective()
-                    # print("Exiting " + str(self.threadID))
-
-                    if self.model.Status == GRB.OPTIMAL:
-                        objective = objective.getValue()
-                    elif self.model.Status == GRB.CUTOFF:
-                        objective = 0.0
-                    elif self.model.Status == GRB.TIME_LIMIT:
-                        file.write("TimeOut")
-                        raise TimeOut
-                    else:
-                        assert False
-
-                    # print(objective)
-                    file.write(str(objective))
-                    file.close()
-                    os._exit(0)
-
-                jobs_left += -1
+                jobs_left += -2
                 #print("I am from the mother", os.getpid())
                 i += 1
 
             if i == n or jobs_left <= 0:
-                #threads_ub[end].join()
-                while True:
-                    try:
-                        file = open("tempsolve/UB" + str(end) +".txt", "r")
-                        tx = file.read()
-                        UB.append(float(tx))
-                        file.close()
-                        os.remove("tempsolve/UB" + str(end) +".txt")
-                        break
-                    except:
-                        pass
 
-                while True:
-                    try:
-                        file = open("tempsolve/LB" + str(end) +".txt", "r")
-                        tx = file.read()
-                        LB.append(float(tx))
-                        file.close()
-                        os.remove("tempsolve/LB" + str(end) +".txt")
-                        break
-                    except:
-                        pass
+                os.waitpid(proc_ub[end], 0)
+                rhand = os.fdopen(fd_ub[end],'r',1)
+                UB.append(float(rhand.readline()))
+                rhand.close()
+
+                os.waitpid(proc_lb[end], 0)
+                rhand = os.fdopen(fd_lb[end],'r',1)
+                LB.append(float(rhand.readline()))
+                rhand.close()
+                #os.kill(proc_lb[end], signal.SIGKILL)
 
                 jobs_left += 2
                 end += 1
+
                 while progressbar < 30*end/n:
                     print("=", end='',flush=True)
                     progressbar += 1
             if end == n:
-                del threads_ub
-                del threads_lb
+                del fd_ub
+                del fd_lb
                 break
 
         print('¦')
-
-            #temp_ub = self.find_one_bound(self.last_layer[i], True, approximative)
-            #temp_lb = self.find_one_bound(self.last_layer[i], False, approximative)
-
-            #print("old UB = ", temp_ub, "; new UB = ", UB[i])
-            #assert(abs(UB[i] - temp_ub) < 1e-5)
-            #assert(abs(LB[i] - temp_lb) < 1e-5)
-            #UB.append(self.find_one_bound(self.last_layer[i], True, approximative))
-            #LB.append(self.find_one_bound(self.last_layer[i], False, approximative))
-
         return LB, UB
-
-    def find_one_bound(self, objective, MAXIMIZE, approximative):
-        if MAXIMIZE:
-            self.model.setObjective(objective, GRB.MAXIMIZE)
-            if approximative:
-                self.model.setParam('Cutoff', 0.0)
-            else:
-                self.model.setParam('Cutoff', -GRB.INFINITY)
-        else:
-            self.model.setObjective(objective, GRB.MINIMIZE)
-            if approximative:
-                self.model.setParam('Cutoff', 0.0)
-            else:
-                self.model.setParam('Cutoff', GRB.INFINITY)
-
-        #  rest_time = self.T_limit - (time.time() - self.start)
-        #  if rest_time < 0:
-        #    raise TimeOut
-        #  self.model.setParam('TimeLimit', rest_time)
-        self.model.optimize()
-        if self.model.Status == GRB.OPTIMAL:
-            return objective.x
-        elif self.model.Status == GRB.CUTOFF:
-            return 0.0
-        elif self.model.Status == GRB.TIME_LIMIT:
-            raise TimeOut
-        else:
-            assert False
 
     def verify_label(self):
         #  this function is a performance improvement for the last layer bounds, it can prove that
@@ -317,53 +190,3 @@ class net_in_LP:
                 assert False
 
         return True
-
-
-
-# def add_ReLu_slow(model, last_layer, layer_num):
-#     LB, UB = go_to_box(model, last_layer)
-#
-#     n = len(last_layer)
-#     r = model.addVars(n, name=str(layer_num) + "v", lb=-GRB.INFINITY, ub=GRB.INFINITY)
-#     for k in range(n):
-#         #  ik = model.getVarByName(str(layer_num-1) + "v[" + str(k) + "]")
-#         if LB[k] >= 0:
-#             model.addLConstr(r[k] == last_layer[k], str(layer_num) + "c" + str(k))
-#         else:
-#             if UB[k] <= 0:
-#                 model.addLConstr(r[k] == 0, str(layer_num) + "c" + str(k))
-#             else:
-#                 model.addLConstr(r[k] >= 0, str(layer_num) + "c" + str(k))
-#                 model.addLConstr(r[k] >= last_layer[k], str(layer_num) + "cc" + str(k))
-#                 lam = UB[k] / (UB[k] - LB[k])
-#                 d = -LB[k] * lam
-#                 model.addLConstr(r[k] <= lam * last_layer[k] + d, str(layer_num) + "ccc" + str(k))
-#     return model, r
-
-
-#  This function was the attempt to model more tight constraints by adding a quadratic constraint
-#  Unfortunately it is not solvable because the set is not convex anymore and the Q matrix not positive semidefinite
-# def add_ReLu_precise(model, last_layer, layer_num):
-#     LB, UB = go_to_box(model, last_layer)
-#     n = len(last_layer)
-#     r = model.addVars(n, name=str(layer_num) + "v", lb=-GRB.INFINITY, ub=GRB.INFINITY)
-#     for k in range(n):
-#         if LB[k] <= 0:
-#             if UB[k] <= 0:
-#                 last_layer[k] = 0
-#             else:
-#                 temp = model.addVar(lb=0, ub=GRB.INFINITY)
-#                 #model.addLConstr(temp >= 0, str(layer_num) + "c" + str(k))
-#                 model.addLConstr(temp >= last_layer[k], str(layer_num) + "cc" + str(k))
-#                 #lam = UB[k] / (UB[k] - LB[k])
-#                 #d = -LB[k] * lam
-#                 #model.addLConstr(temp <= lam * last_layer[k] + d, str(layer_num) + "ccc" + str(k))
-#                 zba =2*UB+LB
-#                 #model.addConstr((last_layer[k] - LB[k])*(last_layer[k] - LB[k]) + (temp-ba[k])*(temp-ba[k]) >= ba[k]*ba[k])
-#                 #model.addConstr(last_layer[k]*last_layer[k] - 2*LB[k]*last_layer[k] + LB[k]*LB[k] + temp*temp - 2*temp*zba + zba*zba >= zba)
-#                 model.addConstr(last_layer[k] * last_layer[k] - 2*LB[k]*last_layer[k] + LB[k]*LB[k] + temp*temp - 2*temp*zba[k] + zba[k] * zba[k] >= zba[k])
-#
-#                 last_layer[k] = temp
-#
-#     return model, last_layer
-
