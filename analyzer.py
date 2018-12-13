@@ -2,9 +2,6 @@ import sys
 
 sys.path.insert(0, '../ELINA/python_interface/')
 
-for path in sys.path:
-    print(path)
-
 import numpy as np
 import re
 import csv
