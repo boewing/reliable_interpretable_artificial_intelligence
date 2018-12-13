@@ -383,7 +383,8 @@ def analyze(nn, LB_N0, UB_N0, label, *args):
                     # We would like to access the result of this optimization!
                     # and use it to refine the box strategy
                     # for now we use the normal method
-                    LB, UB = myLP.go_to_box(approximative=False)
+                    LB = myLP.last_bounds_LB
+                    UB = myLP.last_bounds_UB
                     element = bounds_to_elina_interval(man, LB, UB)
                 else:
                     print("not valid strategy", strategy[strategyno])
