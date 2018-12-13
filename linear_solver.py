@@ -23,7 +23,12 @@ class net_in_LP:
         self.last_bounds_UB = UB
         self.T_limit = 1e10
 
-    def add_ReLu(self):
+    def add_ReLu(self, LB=None, UB=None):
+        # some bounds may be knownn from the elina solver
+        if (UB is not None) and (LB is not None):
+            self.model.setAttr("LB", self.last_layer, LB)
+            self.model.setAttr("UB", self.last_layer, UB)
+
         self.last_layer_num += 1
         self.last_bounds_LB, self.last_bounds_UB = self.go_to_box(approximative=True)
         n = len(self.last_layer)
