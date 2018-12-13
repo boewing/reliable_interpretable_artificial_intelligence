@@ -7,7 +7,7 @@ from ctypes.util import find_library
 from gurobipy import *
 import time
 import datetime
-from linear_solver_threaded import *
+from linear_solver_multiproc import *
 
 def analyze(nn, LB_N0, UB_N0, label, *args):
 
