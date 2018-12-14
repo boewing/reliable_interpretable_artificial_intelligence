@@ -95,13 +95,15 @@ class net_in_LP:
 
                 if self.model.Status == GRB.OPTIMAL:
                     objective = objective.getValue()
+                    whand.write(str(objective) + "\n")
                 elif self.model.Status == GRB.CUTOFF:
-                    objective = 0.0
+                    whand.write(str(0.0) + "\n")
                 elif self.model.Status == GRB.TIME_LIMIT:
                     whand.write("TimeOut")
                     raise TimeOut
                 else:
-                    assert False
+                    whand.write("Error \n")
+                    print("Status Code of gurobi iteration " + str(i) + " is " + str(self.model.Status))
 
                 whand.write(str(objective) + "\n")
 
@@ -131,10 +133,9 @@ class net_in_LP:
         #self.processes_used = 8
         indices = {}
         parallel = int(0.5 + self.processes_used/2)
-        block_len = int(0.5 + n/parallel)
         for k in range(parallel):
             indices[k] = []
-            while i < (k+1)*n/parallel and i < n:
+            while i < n*(k+1)/parallel:
                 indices[k].append(i)
                 i += 1
         #print(indices)

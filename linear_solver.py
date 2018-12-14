@@ -23,7 +23,7 @@ class net_in_LP:
         self.last_bounds_UB = UB
         self.T_limit = 1e10
 
-    def add_ReLu(self, LB=None, UB=None, fast=False):
+    def add_ReLu(self, LB=None, UB=None, fast=False, stop_t=None):
         # some bounds may be knownn from the elina solver
         if (UB is not None) and (LB is not None):
             assert(len(LB) == len(self.last_layer) and len(UB) == len(self.last_layer))
@@ -34,7 +34,7 @@ class net_in_LP:
             self.last_bounds_LB = LB
             self.last_bounds_UB = UB
         else:
-            self.last_bounds_LB, self.last_bounds_UB = self.go_to_box(approximative=True)
+            self.last_bounds_LB, self.last_bounds_UB = self.go_to_box(LB, UB, approximative=True, stop_t=stop_t)
 
         self.last_layer_num += 1
         n = len(self.last_layer)
@@ -75,13 +75,18 @@ class net_in_LP:
 
         self.last_layer = h
 
-    def go_to_box(self, approximative):
+    def go_to_box(self, LB_in, UB_in, approximative, stop_t=None):
+        t_start = time.time()
         n = len(self.last_layer)
         UB = []
         LB = []
         for i in range(n):
-            UB.append(self.find_one_bound(self.last_layer[i], True, approximative))
-            LB.append(self.find_one_bound(self.last_layer[i], False, approximative))
+            if stop_t is None or stop_t > time.time():
+                UB.append(self.find_one_bound(self.last_layer[i], True, approximative))
+                LB.append(self.find_one_bound(self.last_layer[i], False, approximative))
+            else:
+                UB.append(UB_in[i])
+                LB.append(LB_in[i])
 
         return LB, UB
 

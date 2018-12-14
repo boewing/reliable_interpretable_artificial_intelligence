@@ -377,7 +377,7 @@ def analyze(nn, LB_N0, UB_N0, label, *args):
                 if strategy[strategyno] == 'box':
                     myLP.add_ReLu(LB=LB, UB=UB, fast=True)
                 elif strategy[strategyno] == 'LP':
-                    myLP.add_ReLu(LB=LB, UB=UB, fast=False)
+                    myLP.add_ReLu(LB=LB, UB=UB, fast=False, stop_t = start + 360)
                     #### TODO
                     # here we actually solve the LP
                     # We would like to access the result of this optimization!
