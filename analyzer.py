@@ -374,10 +374,12 @@ def analyze(nn, LB_N0, UB_N0, label, *args):
                 # now when setting up the relu approximation we first get the rough estimate from box
                 LB, UB = alina_interval_to_bounds(man, element)
                 # we also add the bounds to alina and either use them directly or compute tighter bounds
-                if strategy[strategyno] == 'box' or strategyno<=2 or time.time>start + t_buildup:
+                if strategy[strategyno] == 'box' or strategyno<=2 or time.time()>(start + t_buildup):
                     myLP.add_ReLu(LB=LB, UB=UB, fast=True)
+                    print("Added fast relu")
                 elif strategy[strategyno] == 'LP':
                     myLP.add_ReLu(LB=LB, UB=UB, fast=False, stop_t = start + t_buildup)
+                    print("Added slow relu")
                     # here we actually solve the LP
                     # We would like to access the result of this optimization!
                     # and use it to refine the box strategy
