@@ -325,6 +325,7 @@ def analyze(nn, LB_N0, UB_N0, label, *args):
         return get_label(nn,LB_N0), None
 
     start = time.time()
+    t_buildup = 360
     nn.ffn_counter = 0
     numlayer = nn.numlayer
     man = elina_box_manager_alloc()
@@ -356,7 +357,6 @@ def analyze(nn, LB_N0, UB_N0, label, *args):
             #we always add the affine layer to both elina and gurobi, both super fast for this
             element = affine_box_layerwise(man, element, weights, biases)
             myLP.add_affine(weights, biases)
-            element = update_box(element, man, myLP, strategy, strategyno)
             strategyno += 1
             #  Question: is it necessary to increase the strategyno twice?
             #print("adding affine took " + str(time.time() - t) + "seconds")
@@ -374,15 +374,13 @@ def analyze(nn, LB_N0, UB_N0, label, *args):
                 # now when setting up the relu approximation we first get the rough estimate from box
                 LB, UB = alina_interval_to_bounds(man, element)
                 # we also add the bounds to alina and either use them directly or compute tighter bounds
-                if strategy[strategyno] == 'box':
+                if strategy[strategyno] == 'box' or strategyno<=2 or time.time>start + t_buildup:
                     myLP.add_ReLu(LB=LB, UB=UB, fast=True)
                 elif strategy[strategyno] == 'LP':
-                    myLP.add_ReLu(LB=LB, UB=UB, fast=False, stop_t = start + 360)
-                    #### TODO
+                    myLP.add_ReLu(LB=LB, UB=UB, fast=False, stop_t = start + t_buildup)
                     # here we actually solve the LP
                     # We would like to access the result of this optimization!
                     # and use it to refine the box strategy
-                    # for now we use the normal method
                     LB = myLP.last_bounds_LB
                     UB = myLP.last_bounds_UB
                     element = bounds_to_elina_interval(man, LB, UB)
@@ -391,7 +389,6 @@ def analyze(nn, LB_N0, UB_N0, label, *args):
                     exit(0)
                 #last we also add the relu to alina
                 element = relu_box_layerwise(man, True, element, 0, num_out_pixels)
-                element = update_box(element, man, myLP, strategy, strategyno)
                 strategyno += 1
                 #print("adding ReLu took " + str(time.time() - t) + "seconds")
 
