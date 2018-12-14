@@ -337,12 +337,8 @@ def analyze(nn, LB_N0, UB_N0, label, *args):
     else:
         strategy = args[0]
     # print (strategy)
-    if strategy[0] == 'box':
-        element = bounds_to_elina_interval(man, LB_N0, UB_N0)
-        myLP = None
-    elif strategy[0] == 'LP':
-        element = None
-        myLP = net_in_LP(LB_N0, UB_N0, 0, label, start)
+    element = bounds_to_elina_interval(man, LB_N0, UB_N0)
+    myLP = net_in_LP(LB_N0, UB_N0, 0, label, start)
 
     strategyno = 0
     timeout = False
@@ -356,28 +352,15 @@ def analyze(nn, LB_N0, UB_N0, label, *args):
             print("time", datetime.datetime.now().time())
             weights = nn.weights[nn.ffn_counter]
             biases = nn.biases[nn.ffn_counter]
-            if strategy[strategyno] == 'box':
-                if element == None:  # we come from LP and go to box
-                    LB, UB = myLP.go_to_box(approximative=False)
-                    element = bounds_to_elina_interval(man, LB, UB)
-                    element = affine_box_layerwise(man, element, weights, biases)
-                    myLP = None
-                elif myLP == None:  # we stay in box
-                    element = affine_box_layerwise(man, element, weights, biases)
-            elif strategy[strategyno] == 'LP':
-                if element == None:  # we stay in LP
-                    myLP.add_affine(weights, biases)
-                elif myLP == None:  # we come from box and go to LP
-                    LB, UB = alina_interval_to_bounds(man, element)
-                    myLP = net_in_LP(LB, UB, 0, label, start)
-                    myLP.add_affine(weights, biases)
-                    element = None
-            else:
-                print("not valid strategy", strategy[strategyno])
-                exit(0)
+
+            #we always add the affine layer to both elina and gurobi, both super fast for this
+            element = affine_box_layerwise(man, element, weights, biases)
+            myLP.add_affine(weights, biases)
+            element = update_box(element, man, myLP, strategy, strategyno)
             strategyno += 1
             #  Question: is it necessary to increase the strategyno twice?
             #print("adding affine took " + str(time.time() - t) + "seconds")
+
 
             # handle ReLU layer
             if (nn.layertypes[layerno] == 'ReLU'):
@@ -387,27 +370,45 @@ def analyze(nn, LB_N0, UB_N0, label, *args):
                 print("add relu layer to problem", strategyno, "strategy", strategy[strategyno])
                 print("time", datetime.datetime.now().time())
                 num_out_pixels = len(weights)
-                if strategy[strategyno] == 'box':
-                    if element == None:  # we come from LP and go to box
-                        element = LP_to_elina(man, myLP, num_out_pixels)
-                        myLP = None
-                    elif myLP == None:  # we stay in box
-                        element = relu_box_layerwise(man, True, element, 0, num_out_pixels)
-                elif strategy[strategyno] == 'LP':
-                    if element == None:  # we stay in LP
-                            myLP.add_ReLu()
-                    elif myLP == None and (not timeout):  # we come from box and go to LP
-                        LB, UB = alina_interval_to_bounds(man, element)
-                        myLP = net_in_LP(LB, UB, 0, label, start)
-                        myLP.add_ReLu()
-                        element = None
 
+                # now when setting up the relu approximation we first get the rough estimate from box
+                LB, UB = alina_interval_to_bounds(man, element)
+                # we also add the bounds to alina and either use them directly or compute tighter bounds
+                if strategy[strategyno] == 'box':
+                    myLP.add_ReLu(LB=LB, UB=UB, fast=True)
+                elif strategy[strategyno] == 'LP':
+                    myLP.add_ReLu(LB=LB, UB=UB, fast=False)
+                    #### TODO
+                    # here we actually solve the LP
+                    # We would like to access the result of this optimization!
+                    # and use it to refine the box strategy
+                    # for now we use the normal method
+                    LB, UB = myLP.go_to_box(approximative=False)
+                    element = bounds_to_elina_interval(man, LB, UB)
                 else:
                     print("not valid strategy", strategy[strategyno])
                     exit(0)
+                #last we also add the relu to alina
+                element = relu_box_layerwise(man, True, element, 0, num_out_pixels)
+                element = update_box(element, man, myLP, strategy, strategyno)
                 strategyno += 1
                 #print("adding ReLu took " + str(time.time() - t) + "seconds")
 
+
+
+            #                    if element == None:  # we come from LP and go to box
+#                        element = LP_to_elina(man, myLP, num_out_pixels)
+#                        myLP = None
+#                    elif myLP == None:  # we stay in box
+#                        element = relu_box_layerwise(man, True, element, 0, num_out_pixels)
+#                elif strategy[strategyno] == 'LP':
+#                    if element == None:  # we stay in LP
+#                            myLP.add_ReLu()
+#                    elif myLP == None and (not timeout):  # we come from box and go to LP
+#                        LB, UB = alina_interval_to_bounds(man, element)
+#                        myLP = net_in_LP(LB, UB, 0, label, start)
+#                        myLP.add_ReLu()
+#                        element = None
             nn.ffn_counter += 1
 
         else:
@@ -420,7 +421,7 @@ def analyze(nn, LB_N0, UB_N0, label, *args):
 
     print("time", datetime.datetime.now().time())
     # get bounds for each output neuron
-    if myLP == None:
+    if strategy[-1]=='box':
         final_LB, final_UB = alina_interval_to_bounds(man, element)
         output_size = len(final_LB)
         # print upper and lower bounds for debug
@@ -428,38 +429,22 @@ def analyze(nn, LB_N0, UB_N0, label, *args):
             print("converted neuron", i, "lower bound", final_LB[i], "upper bound", final_UB[i])
             # print("LP neuron", i, "lower bound", LP_LB[i], "upper bound", LP_UB[i])
 
-        # if epsilon is zero, try to classify else verify robustness
-
         verified_flag = True
-        predicted_label = 0
-        if (LB_N0[0] == UB_N0[0]):
-            for i in range(output_size):
-                inf = final_LB[i]  # bounds[i].contents.inf.contents.val.dbl
-                flag = True
-                for j in range(output_size):
-                    if (j != i):
-                        sup = final_UB[j]  # bounds[j].contents.sup.contents.val.dbl
-                        if (inf <= sup):
-                            flag = False
-                            break
-                if (flag):
-                    predicted_label = i
+        # for a label to be verified, all upper bounds of the intervals have to be below (<=) the lower bound of the the label interval
+        # inf = bounds[label].contents.inf.contents.val.dbl #inf is the lower bound of an interval
+        inf = final_LB[label]
+        for j in range(output_size):
+            if (j != label):
+                # sup = bounds[j].contents.sup.contents.val.dbl #sup is the upper bound of an interval
+                sup = final_UB[j]
+                if (inf <= sup):
+                    predicted_label = label
+                    verified_flag = False
                     break
-        else:
-            # for a label to be verified, all upper bounds of the intervals have to be below (<=) the lower bound of the the label interval
-            # inf = bounds[label].contents.inf.contents.val.dbl #inf is the lower bound of an interval
-            inf = final_LB[label]
-            for j in range(output_size):
-                if (j != label):
-                    # sup = bounds[j].contents.sup.contents.val.dbl #sup is the upper bound of an interval
-                    sup = final_UB[j]
-                    if (inf <= sup):
-                        predicted_label = label
-                        verified_flag = False
-                        break
         # dims = elina_abstract0_dimension(man, element)
         # output_size = dims.intdim + dims.realdim
-    elif element == None:
+        predicted_label = label
+    elif strategy[-1]=='LP':
         # final_LB, final_UB = myLP.go_to_box()
         verified_flag = myLP.verify_label()
         predicted_label = label
@@ -470,6 +455,23 @@ def analyze(nn, LB_N0, UB_N0, label, *args):
     elina_manager_free(man)
     print("time", datetime.datetime.now().time())
     return predicted_label, verified_flag
+
+
+def update_box(element, man, myLP, strategy, strategyno):
+    # now after the layer we can decide to update the bounds of box or lp
+    if strategyno + 1== len(strategy):
+        pass
+    else:
+        if strategy[strategyno] == 'LP' and strategy[strategyno + 1] == 'box':
+            # we want to "restart" the box
+            LB, UB = myLP.go_to_box(approximative=False)
+            element = bounds_to_elina_interval(man, LB, UB)
+        elif strategy[strategyno] == 'box' and strategy[strategyno + 1] == 'LP':
+            # don't do anything, LP has all the constraints anyway and will get the relu bounds next call
+            pass
+        else:
+            pass
+    return element
 
 
 def LP_to_elina(man, myLP, num_out_pixels):
