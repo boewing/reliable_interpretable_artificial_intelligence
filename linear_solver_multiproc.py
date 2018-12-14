@@ -30,7 +30,7 @@ class net_in_LP:
         self.last_bounds_LB = LB
         self.last_bounds_UB = UB
         self.T_limit = 1e10
-        self.processes_used = max(multiprocessing.cpu_count() - 1, 2)
+        self.processes_used = max(multiprocessing.cpu_count(), 2)
         print("the number of processes used is", self.processes_used)
 
     def add_ReLu(self):
@@ -95,17 +95,18 @@ class net_in_LP:
 
                 if self.model.Status == GRB.OPTIMAL:
                     objective = objective.getValue()
+                    #print("objective is ", objective)
                     whand.write(str(objective) + "\n")
                 elif self.model.Status == GRB.CUTOFF:
                     whand.write(str(0.0) + "\n")
                 elif self.model.Status == GRB.TIME_LIMIT:
-                    whand.write("TimeOut")
+                    #whand.write("TimeOut")
                     raise TimeOut
                 else:
                     whand.write("Error \n")
                     print("Status Code of gurobi iteration " + str(i) + " is " + str(self.model.Status))
 
-                whand.write(str(objective) + "\n")
+                #whand.write(str(objective) + "\n")
 
             whand.close()
             #sys.exit()
