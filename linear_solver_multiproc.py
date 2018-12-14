@@ -30,6 +30,7 @@ class net_in_LP:
         self.last_bounds_LB = LB
         self.last_bounds_UB = UB
         self.T_limit = 1e10
+        self.progressbarlen = 48
         self.processes_used = max(multiprocessing.cpu_count(), 2)
         print("the number of processes used is", self.processes_used)
 
@@ -76,6 +77,7 @@ class net_in_LP:
         pid = os.fork()
         if pid == 0:
             whand = os.fdopen(wend, 'w', 1)
+            progressbar = 0
             for i in indices:
                 if MAXIMIZE:
                     self.model.setObjective(self.last_layer[i], GRB.MAXIMIZE)
@@ -107,6 +109,9 @@ class net_in_LP:
                     print("Status Code of gurobi iteration " + str(i) + " is " + str(self.model.Status))
 
                 #whand.write(str(objective) + "\n")
+                while progressbar < (self.progressbarlen/self.processes_used * (i - indices[0] +1) / len(indices)):
+                    print("=", end='', flush=True)
+                    progressbar += 1
 
             whand.close()
             #sys.exit()
@@ -115,9 +120,7 @@ class net_in_LP:
         return pid, rend
 
     def go_to_box(self, approximative):
-        jobs_left = self.processes_used
-        progressbar = 0
-        print("¦==============================¦")
+        print("¦"+"="*self.progressbarlen + "¦")
         print("¦",end='', flush=True)
         n = len(self.last_layer)
         UB = []
@@ -128,7 +131,6 @@ class net_in_LP:
         proc_lb = {}
 
         i = 0
-        end = 0
 
         #n = 77
         #self.processes_used = 8
@@ -159,41 +161,6 @@ class net_in_LP:
                 LB.append(float(rhand.readline()))
             rhand.close()
             del fd_lb[k]
-
-            while progressbar < 30 * k / (parallel):
-                print("=", end='', flush=True)
-                progressbar += 1
-
-
-        # while True:
-        #     if k < n and jobs_left > 0:
-        #         proc_ub[k], fd_ub[k] = self.start_job(indices[k], approximative, True)
-        #         proc_lb[k], fd_lb[k] = self.start_job(indices[k], approximative, False)
-        #
-        #         jobs_left += -2
-        #         #print("I am from the mother", os.getpid())
-        #         k += 1
-        #
-        #     if i == n or jobs_left <= 0:
-        #
-        #         os.waitpid(proc_ub[end], 0)
-        #         rhand = os.fdopen(fd_ub[end],'r',1)
-        #         UB.append(float(rhand.readline()))
-        #         rhand.close()
-        #
-        #         os.waitpid(proc_lb[end], 0)
-        #         rhand = os.fdopen(fd_lb[end],'r',1)
-        #         LB.append(float(rhand.readline()))
-        #         rhand.close()
-        #         #os.kill(proc_lb[end], signal.SIGKILL)
-        #
-        #         jobs_left += 2
-        #         end += 1
-        #
-        #     if end == n:
-        #         del fd_ub
-        #         del fd_lb
-        #         break
 
         print('¦')
         return LB, UB
