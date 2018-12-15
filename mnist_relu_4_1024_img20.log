@@ -1,0 +1,58 @@
+Sender: LSF System <lsfadmin@eu-a6-001-04>
+Subject: Job 80514477: <mnist_relu_4_1024_img20> in cluster <euler> Done
+
+Job <mnist_relu_4_1024_img20> was submitted from host <eu-login-25-ng> by user <boewingf> in cluster <euler> at Mon Dec 10 01:49:56 2018
+Job was executed on host(s) <eu-a6-001-04>, in queue <normal.120h>, as user <boewingf> in cluster <euler> at Mon Dec 10 01:50:18 2018
+</cluster/home/boewingf> was used as the home directory.
+</cluster/home/boewingf/analyzer> was used as the working directory.
+Started at Mon Dec 10 01:50:18 2018
+Terminated at Mon Dec 10 03:34:09 2018
+Results reported at Mon Dec 10 03:34:09 2018
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+python -u meta_noelina_analyzer.py ../mnist_nets/mnist_relu_4_1024.txt ../mnist_images/img20.txt
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   6229.52 sec.
+    Max Memory :                                 404 MB
+    Average Memory :                             334.90 MB
+    Total Requested Memory :                     1024.00 MB
+    Delta Memory :                               620.00 MB
+    Max Swap :                                   -
+    Max Processes :                              3
+    Max Threads :                                5
+    Run time :                                   6231 sec.
+    Turnaround time :                            6253 sec.
+
+The output (if any) follows:
+
+time 01:50:36.706504
+add affine layer to problem 0 strategy LP
+time 01:50:36.722943
+add relu layer to problem 1 strategy LP
+time 01:50:37.234747
+add affine layer to problem 2 strategy LP
+time 01:52:30.713440
+add relu layer to problem 3 strategy LP
+time 01:52:31.469499
+add affine layer to problem 4 strategy LP
+time 02:07:19.785969
+add relu layer to problem 5 strategy LP
+time 02:07:20.494290
+add affine layer to problem 6 strategy LP
+time 03:33:55.611408
+time 03:33:55.619231
+logit 0 is strictly smaller than the label logit (9)
+logit 1 - label logit (9) <= 0.02677306489943021
+can not be verified
+analysis time:  6212.8321669101715  seconds
+epsilon is in:
+[0.005, 0.005]
+Freed default Gurobi environment

@@ -30,7 +30,7 @@ class net_in_LP:
         self.last_bounds_LB = LB
         self.last_bounds_UB = UB
         self.T_limit = 1e10
-        self.progressbarlen = 48
+        self.progressbarlen = 72
         self.processes_used = max(multiprocessing.cpu_count(), 2)
         print("the number of processes used is", self.processes_used)
 
