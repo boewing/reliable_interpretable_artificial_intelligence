@@ -1,100 +1,100 @@
-img 0 failed cannot
-img 1 failed cannot
-img 2 failed cannot
-img 3 failed cannot
-img 4 failed cannot
-img 5 verified
-img 6 failed cannot
-img 7 failed cannot
-img 8 failed cannot
-img 9 failed cannot
-img 10 failed cannot
-img 11 verified
-img 12 failed cannot
-img 13 failed cannot
-img 14 failed cannot
-img 15 failed cannot
-img 16 failed timeout
-img 17 failed cannot
-img 18 failed cannot
-img 19 failed cannot
-img 20 failed cannot
-img 21 failed cannot
-img 22 failed cannot
-img 23 failed cannot
-img 24 failed cannot
-img 25 failed cannot
-img 26 verified
-img 27 verified
-img 28 failed cannot
-img 29 failed cannot
-img 30 failed cannot
-img 31 failed cannot
-img 32 failed cannot
-img 33 verified
-img 34 failed cannot
-img 35 failed cannot
-img 36 verified
-img 37 verified
-img 38 failed cannot
-img 39 verified
-img 40 verified
-img 41 failed cannot
-img 42 verified
-img 43 failed cannot
-img 44 failed cannot
-img 45 failed cannot
-img 46 failed cannot
-img 47 failed cannot
-img 48 failed cannot
-img 49 failed cannot
-img 50 failed cannot
-img 51 failed cannot
-img 52 failed cannot
-img 53 failed cannot
-img 54 failed cannot
-img 55 failed cannot
-img 56 failed cannot
-img 57 failed cannot
-img 58 failed cannot
-img 59 failed cannot
-img 60 failed cannot
-img 61 failed cannot
-img 62 verified
-img 63 failed cannot
-img 64 failed cannot
-img 65 failed cannot
-img 66 failed cannot
-img 67 failed cannot
-img 68 failed cannot
-img 69 failed cannot
-img 70 failed cannot
-img 71 failed cannot
-img 72 failed cannot
-img 73 failed cannot
-img 74 failed cannot
-img 75 failed cannot
-img 76 failed cannot
-img 77 verified
-img 78 failed cannot
-img 79 failed cannot
-img 80 failed cannot
-img 81 failed cannot
-img 82 failed cannot
-img 83 failed cannot
-img 84 failed cannot
-img 85 failed cannot
-img 86 failed cannot
-img 87 verified
-img 88 failed cannot
-img 89 failed cannot
-img 90 failed cannot
-img 91 failed cannot
-img 92 verified
-img 93 failed cannot
-img 94 failed cannot
-img 95 failed cannot
-img 96 failed cannot
-img 97 failed cannot
-img 98 failed cannot
-img 99 failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img62.txt 0.01;fast;slow;slow;fast;fast;fast;10098.382765293121;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img59.txt 0.01;fast;slow;slow;slow;fast;fast;364.2049608230591;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img87.txt 0.01;fast;slow;slow;slow;slow;fast;360.98422503471375;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img83.txt 0.01;fast;slow;slow;slow;slow;fast;364.918518781662;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img32.txt 0.01;fast;slow;slow;slow;slow;fast;361.6554226875305;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img67.txt 0.01;fast;slow;slow;slow;slow;fast;363.60159969329834;verified
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img44.txt 0.01;fast;slow;slow;slow;fast;fast;362.0737705230713;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img79.txt 0.01;fast;slow;slow;slow;slow;fast;362.86840176582336;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img58.txt 0.01;fast;slow;slow;slow;slow;fast;360.3433849811554;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img31.txt 0.01;fast;slow;slow;slow;fast;fast;365.70306301116943;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img75.txt 0.01;fast;slow;slow;slow;slow;fast;361.58011531829834;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img25.txt 0.01;fast;slow;slow;slow;slow;slow;130.3358600139618;verified
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img78.txt 0.01;fast;slow;slow;slow;fast;fast;362.4886257648468;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img19.txt 0.01;fast;slow;slow;slow;slow;fast;361.8444471359253;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img61.txt 0.01;fast;slow;slow;slow;slow;fast;361.4671812057495;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img66.txt 0.01;fast;slow;slow;slow;fast;fast;362.3896310329437;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img38.txt 0.01;;;;;;;2.47955322265625e-05;failed timeout
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img45.txt 0.01;fast;slow;slow;slow;fast;fast;362.52384781837463;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img35.txt 0.01;fast;slow;slow;slow;slow;fast;361.2473225593567;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img37.txt 0.01;fast;slow;slow;slow;fast;fast;363.3212354183197;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img81.txt 0.01;fast;slow;slow;slow;slow;fast;361.7204592227936;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img21.txt 0.01;fast;slow;slow;slow;slow;fast;362.9773886203766;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img70.txt 0.01;fast;slow;slow;slow;slow;fast;362.3530125617981;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img2.txt 0.01;fast;slow;slow;slow;fast;fast;366.36529898643494;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img17.txt 0.01;fast;slow;slow;slow;slow;fast;361.16503977775574;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img41.txt 0.01;fast;slow;slow;slow;fast;fast;362.1356694698334;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img88.txt 0.01;fast;slow;slow;slow;slow;slow;276.60961842536926;verified
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img3.txt 0.01;fast;slow;slow;slow;slow;slow;242.0644109249115;verified
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img5.txt 0.01;fast;slow;slow;slow;fast;fast;363.43361258506775;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img92.txt 0.01;fast;slow;slow;slow;fast;fast;366.59576296806335;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img22.txt 0.01;fast;slow;slow;slow;slow;fast;361.1518397331238;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img64.txt 0.01;fast;slow;slow;slow;fast;fast;366.73200368881226;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img65.txt 0.01;fast;slow;slow;slow;fast;fast;365.7992639541626;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img93.txt 0.01;fast;slow;slow;slow;slow;slow;321.2745659351349;verified
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img47.txt 0.01;fast;slow;slow;slow;fast;fast;364.30950140953064;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img89.txt 0.01;fast;slow;slow;slow;fast;fast;362.595251083374;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img91.txt 0.01;fast;slow;slow;slow;slow;slow;362.2609610557556;verified
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img85.txt 0.01;fast;slow;slow;slow;slow;slow;195.51542925834656;verified
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img63.txt 0.01;fast;slow;slow;slow;fast;fast;362.65500569343567;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img69.txt 0.01;fast;slow;slow;slow;slow;slow;275.35008668899536;verified
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img42.txt 0.01;fast;slow;slow;slow;slow;slow;303.72176909446716;verified
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img26.txt 0.01;fast;slow;slow;slow;fast;fast;364.18256640434265;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img82.txt 0.01;fast;slow;slow;slow;slow;fast;363.80528831481934;verified
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img16.txt 0.01;fast;slow;slow;slow;slow;fast;364.4325144290924;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img8.txt 0.01;fast;slow;slow;slow;slow;fast;361.27986431121826;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img4.txt 0.01;fast;slow;slow;slow;fast;fast;363.8928542137146;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img10.txt 0.01;fast;slow;slow;slow;slow;fast;360.9680848121643;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img27.txt 0.01;fast;slow;slow;slow;slow;fast;360.50866198539734;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img76.txt 0.01;fast;slow;slow;slow;fast;fast;363.31600689888;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img11.txt 0.01;fast;slow;slow;slow;fast;fast;364.7514064311981;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img18.txt 0.01;fast;slow;slow;slow;fast;fast;364.67280626296997;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img23.txt 0.01;fast;slow;slow;slow;fast;fast;363.028671503067;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img28.txt 0.01;fast;slow;slow;slow;slow;fast;360.9580969810486;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img77.txt 0.01;fast;slow;slow;slow;fast;fast;365.4593131542206;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img50.txt 0.01;fast;slow;slow;slow;slow;fast;363.92484307289124;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img0.txt 0.01;fast;slow;slow;slow;fast;fast;363.4733769893646;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img60.txt 0.01;fast;slow;slow;slow;slow;fast;362.20865392684937;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img49.txt 0.01;fast;slow;slow;slow;fast;fast;363.0593047142029;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img30.txt 0.01;fast;slow;slow;slow;fast;fast;372.38947010040283;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img43.txt 0.01;fast;slow;slow;fast;fast;fast;367.91912174224854;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img9.txt 0.01;fast;slow;slow;slow;slow;fast;363.0059370994568;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img12.txt 0.01;fast;slow;slow;slow;fast;fast;367.639107465744;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img68.txt 0.01;fast;slow;slow;slow;slow;slow;351.1434373855591;verified
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img55.txt 0.01;fast;slow;slow;slow;slow;fast;361.39718794822693;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img20.txt 0.01;fast;slow;slow;slow;fast;fast;363.0511085987091;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img29.txt 0.01;fast;slow;slow;slow;fast;fast;368.05717158317566;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img46.txt 0.01;fast;slow;slow;slow;fast;fast;363.5265746116638;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img56.txt 0.01;fast;slow;slow;slow;slow;fast;361.4743187427521;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img6.txt 0.01;fast;slow;slow;slow;slow;fast;364.23883724212646;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img86.txt 0.01;fast;slow;slow;slow;slow;fast;361.6667728424072;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img51.txt 0.01;fast;slow;slow;slow;slow;fast;364.30760955810547;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img96.txt 0.01;fast;slow;slow;fast;fast;fast;371.02998423576355;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img36.txt 0.01;fast;slow;slow;slow;fast;fast;363.3246922492981;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img57.txt 0.01;fast;slow;slow;slow;fast;fast;369.43906259536743;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img54.txt 0.01;fast;slow;slow;slow;slow;fast;361.2784879207611;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img24.txt 0.01;fast;slow;slow;slow;fast;fast;364.56579303741455;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img33.txt 0.01;fast;slow;slow;slow;fast;fast;365.83987164497375;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img99.txt 0.01;fast;slow;slow;slow;slow;slow;328.51956963539124;verified
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img74.txt 0.01;fast;slow;slow;slow;fast;fast;366.3702220916748;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img40.txt 0.01;fast;slow;slow;fast;fast;fast;370.97834849357605;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img53.txt 0.01;fast;slow;slow;slow;fast;fast;367.8960020542145;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img95.txt 0.01;fast;slow;slow;slow;slow;fast;361.3946270942688;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img34.txt 0.01;fast;slow;slow;slow;fast;fast;363.54778122901917;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img39.txt 0.01;fast;slow;slow;slow;fast;fast;363.27813148498535;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img13.txt 0.01;fast;slow;slow;slow;slow;fast;361.02091431617737;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img7.txt 0.01;fast;slow;slow;slow;fast;fast;366.14674711227417;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img52.txt 0.01;fast;slow;slow;slow;fast;fast;365.1019084453583;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img48.txt 0.01;fast;slow;slow;slow;slow;slow;241.30447053909302;verified
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img15.txt 0.01;fast;slow;slow;slow;fast;fast;364.8446235656738;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img14.txt 0.01;fast;slow;slow;slow;fast;fast;362.85063767433167;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img73.txt 0.01;fast;slow;slow;slow;fast;fast;363.4993872642517;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img80.txt 0.01;fast;slow;slow;slow;fast;fast;363.5019881725311;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img71.txt 0.01;fast;slow;slow;slow;slow;slow;197.88293433189392;verified
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img90.txt 0.01;fast;slow;slow;slow;slow;fast;362.28370785713196;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img98.txt 0.01;fast;slow;slow;slow;slow;fast;362.75086736679077;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img94.txt 0.01;fast;slow;slow;slow;fast;fast;364.51640248298645;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img84.txt 0.01;fast;slow;slow;slow;fast;fast;364.0821671485901;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img1.txt 0.01;fast;slow;slow;slow;fast;fast;364.41491961479187;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img97.txt 0.01;fast;slow;slow;slow;fast;fast;366.571980714798;failed cannot
+timeout 480 python3 analyzer.py ../mnist_nets/mnist_relu_6_200.txt ../mnist_images/img72.txt 0.01;fast;slow;slow;slow;fast;fast;366.7335078716278;failed cannot

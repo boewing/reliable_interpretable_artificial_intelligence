@@ -31,6 +31,7 @@ class Exp:
 		lines =[x for x in lines if x != 'Academic license - for non-commercial use only']
 	
 		self.cmd = lines[0]
+		self.relus=[]
 	
 		#find strategy
 		self.strategy = lines[1].replace('[','').replace(']','').replace(',','').replace('\'','').split()
@@ -59,6 +60,10 @@ class Exp:
 				self.times.append(datetime.strptime(lines[l][5:],"%H:%M:%S.%f"))
 			elif lines[l]=="verified" or lines[l]=="can not be verified":
 				self.result = lines[l]
+			elif lines[l]=="Added fast relu":
+				self.relus.append("fast")
+			elif lines[l]=="Added slow relu":
+				self.relus.append("slow")
 			elif lines[l].startswith("analysis"):
 				self.total_time=float(lines[l][16:-9])
 
