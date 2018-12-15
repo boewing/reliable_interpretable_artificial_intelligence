@@ -1,7 +1,7 @@
 import glob
 import os
 
-nets = ["../mnist_nets/mnist_relu_6_100.txt", "../mnist_nets/mnist_relu_6_200.txt", "../mnist_nets/mnist_relu_9_200.txt"]
+nets = ["../mnist_nets/mnist_relu_6_200.txt", "../mnist_nets/mnist_relu_9_200.txt"]
 #nets = ["../mnist_nets/mnist_relu_6_50.txt", "../mnist_nets/mnist_relu_6_200.txt", "../mnist_nets/mnist_relu_9_200.txt"]
 images = glob.glob("../mnist_images/img*.txt")
 epsilon = 0.01
