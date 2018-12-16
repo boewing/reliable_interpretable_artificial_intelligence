@@ -325,7 +325,7 @@ def analyze(nn, LB_N0, UB_N0, label, *args):
         return get_label(nn,LB_N0), None
 
     start = time.time()
-    t_buildup = 360
+    t_buildup = 410
     nn.ffn_counter = 0
     numlayer = nn.numlayer
     man = elina_box_manager_alloc()
