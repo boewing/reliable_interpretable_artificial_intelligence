@@ -8,7 +8,7 @@ lookup = {}
 for netname in nets:
     fd = open("../mnist_nets/mnist_relu_" + netname + ".txt","r")
     net = fd.read()
-    net_adler = adler32(net)
+    net_adler = cheapsum(net)
     if net_adler not in lookup:
         lookup[net_adler] = {}
     else:
@@ -18,7 +18,7 @@ for netname in nets:
     for i in range(100):
         fd = open("../mnist_images/img" + str(i) + ".txt","r")
         img = fd.read()
-        img_adler = adler32(img)
+        img_adler = cheapsum(img)
 
         eps = 0.0
         if os.path.isfile(netname + "_boundary_epsilons/condormnist_relu_" + netname + "_img" + str(i) + ".out"):
