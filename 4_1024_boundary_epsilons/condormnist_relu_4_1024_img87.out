@@ -1,0 +1,197 @@
+Sender: LSF System <lsfadmin@eu-c7-077-08>
+Subject: Job 81106782: <python -u meta_noelina_analyzer.py ../mnist_nets/mnist_relu_4_1024.txt ../mnist_images/img87.txt> in cluster <euler> Done
+
+Job <python -u meta_noelina_analyzer.py ../mnist_nets/mnist_relu_4_1024.txt ../mnist_images/img87.txt> was submitted from host <eu-login-16-ng> by user <boewingf> in cluster <euler> at Tue Dec 18 10:13:47 2018
+Job was executed on host(s) <12*eu-c7-077-08>, in queue <normal.24h>, as user <boewingf> in cluster <euler> at Tue Dec 18 16:13:57 2018
+                            <12*eu-c7-070-01>
+                            <12*eu-c7-078-10>
+                            <12*eu-c7-067-09>
+</cluster/home/boewingf> was used as the home directory.
+</cluster/home/boewingf/analyzer> was used as the working directory.
+Started at Tue Dec 18 16:13:57 2018
+Terminated at Tue Dec 18 21:20:56 2018
+Results reported at Tue Dec 18 21:20:56 2018
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+python -u meta_noelina_analyzer.py ../mnist_nets/mnist_relu_4_1024.txt ../mnist_images/img87.txt
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   423873.69 sec.
+    Max Memory :                                 33372 MB
+    Average Memory :                             12166.47 MB
+    Total Requested Memory :                     120000.00 MB
+    Delta Memory :                               86628.00 MB
+    Max Swap :                                   -
+    Max Processes :                              51
+    Max Threads :                                842
+    Run time :                                   18433 sec.
+    Turnaround time :                            40029 sec.
+
+The output (if any) follows:
+
+time 16:14:22.224007
+the number of processes used is 48
+add affine layer to problem 0 strategy LP
+time 16:14:22.251669
+add relu layer to problem 1 strategy LP
+time 16:14:22.885392
+¦========================================================================¦
+¦================================================================================================¦
+add affine layer to problem 2 strategy LP
+time 16:14:35.719539
+add relu layer to problem 3 strategy LP
+time 16:14:36.604456
+¦========================================================================¦
+¦================================================================================================¦
+add affine layer to problem 4 strategy LP
+time 16:17:08.562011
+add relu layer to problem 5 strategy LP
+time 16:17:09.506214
+¦========================================================================¦
+¦================================================================================================¦
+add affine layer to problem 6 strategy LP
+time 17:33:20.935887
+time 17:33:20.949798
+logit 0 - label logit (3) <= 0.36182117048832474
+can not be verified
+analysis time:  4746.9760801792145  seconds
+epsilon is in:
+[0.005, 0.017499999999999998]
+time 17:33:52.071086
+the number of processes used is 48
+add affine layer to problem 0 strategy LP
+time 17:33:52.075287
+add relu layer to problem 1 strategy LP
+time 17:33:52.700098
+¦========================================================================¦
+¦================================================================================================¦
+add affine layer to problem 2 strategy LP
+time 17:34:05.557073
+add relu layer to problem 3 strategy LP
+time 17:34:06.433946
+¦========================================================================¦
+¦================================================================================================¦
+add affine layer to problem 4 strategy LP
+time 17:36:04.311969
+add relu layer to problem 5 strategy LP
+time 17:36:05.282617
+¦========================================================================¦
+¦================================================================================================¦
+add affine layer to problem 6 strategy LP
+time 18:08:31.748959
+time 18:08:31.763562
+logit 0 is strictly smaller than the label logit (3)
+logit 1 is strictly smaller than the label logit (3)
+logit 2 is strictly smaller than the label logit (3)
+logit 4 is strictly smaller than the label logit (3)
+logit 5 is strictly smaller than the label logit (3)
+logit 6 is strictly smaller than the label logit (3)
+logit 7 is strictly smaller than the label logit (3)
+logit 8 is strictly smaller than the label logit (3)
+logit 9 is strictly smaller than the label logit (3)
+verified
+analysis time:  2094.543176651001  seconds
+epsilon is in:
+[0.01125, 0.017499999999999998]
+time 18:09:09.095884
+the number of processes used is 48
+add affine layer to problem 0 strategy LP
+time 18:09:09.107456
+add relu layer to problem 1 strategy LP
+time 18:09:09.730019
+¦========================================================================¦
+¦================================================================================================¦
+add affine layer to problem 2 strategy LP
+time 18:09:22.327404
+add relu layer to problem 3 strategy LP
+time 18:09:23.216222
+¦========================================================================¦
+¦================================================================================================¦
+add affine layer to problem 4 strategy LP
+time 18:11:36.231480
+add relu layer to problem 5 strategy LP
+time 18:11:37.143696
+¦========================================================================¦
+¦================================================================================================¦
+add affine layer to problem 6 strategy LP
+time 19:06:27.851243
+time 19:06:27.865485
+logit 0 is strictly smaller than the label logit (3)
+logit 1 is strictly smaller than the label logit (3)
+logit 2 is strictly smaller than the label logit (3)
+logit 4 is strictly smaller than the label logit (3)
+logit 5 is strictly smaller than the label logit (3)
+logit 6 is strictly smaller than the label logit (3)
+logit 7 is strictly smaller than the label logit (3)
+logit 8 is strictly smaller than the label logit (3)
+logit 9 is strictly smaller than the label logit (3)
+verified
+analysis time:  3478.283059835434  seconds
+epsilon is in:
+[0.014374999999999999, 0.017499999999999998]
+time 19:07:30.201407
+the number of processes used is 48
+add affine layer to problem 0 strategy LP
+time 19:07:30.206232
+add relu layer to problem 1 strategy LP
+time 19:07:30.839488
+¦========================================================================¦
+¦================================================================================================¦
+add affine layer to problem 2 strategy LP
+time 19:07:44.130507
+add relu layer to problem 3 strategy LP
+time 19:07:45.036501
+¦========================================================================¦
+¦================================================================================================¦
+add affine layer to problem 4 strategy LP
+time 19:10:13.535400
+add relu layer to problem 5 strategy LP
+time 19:10:14.458444
+¦========================================================================¦
+¦================================================================================================¦
+add affine layer to problem 6 strategy LP
+time 20:16:55.292999
+time 20:16:55.307168
+logit 0 is strictly smaller than the label logit (3)
+logit 1 - label logit (3) <= 4.208170822464208
+can not be verified
+analysis time:  4177.7649528980255  seconds
+epsilon is in:
+[0.014374999999999999, 0.0159375]
+time 20:17:30.751223
+the number of processes used is 48
+add affine layer to problem 0 strategy LP
+time 20:17:30.755992
+add relu layer to problem 1 strategy LP
+time 20:17:31.381997
+¦========================================================================¦
+¦================================================================================================¦
+add affine layer to problem 2 strategy LP
+time 20:17:45.278982
+add relu layer to problem 3 strategy LP
+time 20:17:46.190462
+¦========================================================================¦
+¦================================================================================================¦
+add affine layer to problem 4 strategy LP
+time 20:20:06.543355
+add relu layer to problem 5 strategy LP
+time 20:20:07.426996
+¦========================================================================¦
+¦================================================================================================¦
+add affine layer to problem 6 strategy LP
+time 21:20:43.272199
+time 21:20:43.287346
+logit 0 is strictly smaller than the label logit (3)
+logit 1 - label logit (3) <= 0.03958328797913424
+can not be verified
+analysis time:  3805.413164138794  seconds
+epsilon is in:
+[0.014374999999999999, 0.01515625]
+Freed default Gurobi environment
