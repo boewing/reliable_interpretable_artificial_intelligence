@@ -24,6 +24,7 @@ class net_in_LP:
         self.T_limit = 1e10
 
     def add_ReLu(self, LB=None, UB=None, fast=False, stop_t=None):
+        exact = False
         # some bounds may be knownn from the elina solver
         if (UB is not None) and (LB is not None):
             assert(len(LB) == len(self.last_layer) and len(UB) == len(self.last_layer))
@@ -45,10 +46,18 @@ class net_in_LP:
                     self.last_layer[k] = self.model.addVar(lb=0, ub=0)
                 else:
                     temp = self.model.addVar(lb=0, ub=self.last_bounds_UB[k])
-                    self.model.addLConstr(temp >= self.last_layer[k], str(self.last_layer_num) + "cc" + str(k))
-                    lam = self.last_bounds_UB[k] / (self.last_bounds_UB[k] - self.last_bounds_LB[k])
-                    d = -self.last_bounds_LB[k] * lam
-                    self.model.addLConstr(temp <= lam * self.last_layer[k] + d, str(self.last_layer_num) + "ccc" + str(k))
+                    if exact:
+                        delta = self.model.addVar(vtype=GRB.BINARY)
+                        self.model.addLConstr(temp >= self.last_layer[k], str(self.last_layer_num) + "cc" + str(k))
+                        M = 1e4
+
+                        self.model.addLConstr(temp <= self.last_layer[k] + M * delta)
+                        self.model.addLConstr(temp <= M * (1 - delta))
+                    else:
+                        self.model.addLConstr(temp >= self.last_layer[k], str(self.last_layer_num) + "cc" + str(k))
+                        lam = self.last_bounds_UB[k] / (self.last_bounds_UB[k] - self.last_bounds_LB[k])
+                        d = -self.last_bounds_LB[k] * lam
+                        self.model.addLConstr(temp <= lam * self.last_layer[k] + d, str(self.last_layer_num) + "ccc" + str(k))
 
                     self.last_layer[k] = temp
 
