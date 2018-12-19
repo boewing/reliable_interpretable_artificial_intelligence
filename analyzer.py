@@ -20,12 +20,165 @@ from gurobipy import *
 import time
 import datetime
 
-from linear_solver import *
-
 libc = CDLL(find_library('c'))
 cstdout = c_void_p.in_dll(libc, 'stdout')
 
 #STRAT = None
+class TimeOut(Exception):
+    pass
+
+
+class net_in_LP:
+    def __init__(self, LB, UB, layer_num, label, start):
+        self.init_layer_num = layer_num
+        self.last_layer_num = layer_num
+        self.label = label
+        self.start = start
+
+        #bounds to model
+        self.model = Model("myLP")
+        self.model.setParam('OutputFlag', False)
+        self.last_layer = self.model.addVars(len(LB), name=str(layer_num) + "v", lb=LB, ub=UB)
+
+        # the bounds before the last ReLu Layer
+        self.last_bounds_LB = LB
+        self.last_bounds_UB = UB
+        self.T_limit = 1e10
+
+    def add_ReLu(self, LB=None, UB=None, fast=False, stop_t=None):
+        exact = False
+        # some bounds may be knownn from the elina solver
+        if (UB is not None) and (LB is not None):
+            assert(len(LB) == len(self.last_layer) and len(UB) == len(self.last_layer))
+            self.model.setAttr("LB", self.last_layer, LB)
+            self.model.setAttr("UB", self.last_layer, UB)
+
+        if fast and (UB is not None) and (LB is not None):
+            self.last_bounds_LB = LB
+            self.last_bounds_UB = UB
+        else:
+            self.last_bounds_LB, self.last_bounds_UB = self.go_to_box(LB, UB, approximative=True, stop_t=stop_t)
+
+        self.last_layer_num += 1
+        n = len(self.last_layer)
+
+        for k in range(n):
+            if self.last_bounds_LB[k] < 0:
+                if self.last_bounds_UB[k] <= 0:
+                    self.last_layer[k] = self.model.addVar(lb=0, ub=0)
+                else:
+                    temp = self.model.addVar(lb=0, ub=self.last_bounds_UB[k])
+                    if exact:
+                        delta = self.model.addVar(vtype=GRB.BINARY)
+                        self.model.addLConstr(temp >= self.last_layer[k], str(self.last_layer_num) + "cc" + str(k))
+                        M = 1e4
+
+                        self.model.addLConstr(temp <= self.last_layer[k] + M * delta)
+                        self.model.addLConstr(temp <= M * (1 - delta))
+                    else:
+                        self.model.addLConstr(temp >= self.last_layer[k], str(self.last_layer_num) + "cc" + str(k))
+                        lam = self.last_bounds_UB[k] / (self.last_bounds_UB[k] - self.last_bounds_LB[k])
+                        d = -self.last_bounds_LB[k] * lam
+                        self.model.addLConstr(temp <= lam * self.last_layer[k] + d, str(self.last_layer_num) + "ccc" + str(k))
+
+                    self.last_layer[k] = temp
+
+    def add_affine(self, weights, biases):
+        self.last_layer_num += 1
+        size = weights.shape
+        n = size[1]
+        m = size[0]
+        assert(n == len(self.last_layer))
+        assert(m == len(biases))
+
+        h = self.model.addVars(m, name=str(self.last_layer_num) + "v", lb=-GRB.INFINITY, ub=GRB.INFINITY)
+        #  print({i: e for i, e in enumerate(weights[1, :])})
+        #  print(last_layer)
+            # test = sorted(last_layer.iterkeys())
+            # assert(test == list(range(n)))
+
+        # here we create the linear expression in a very efficient manner. but a ordered list of gurobi variables is needed
+        vars = [var for (key, var) in sorted(self.last_layer.iteritems())]
+        for j in range(m):
+            fun = LinExpr(weights[j, :], vars)
+            fun.addConstant(biases[j])
+            self.model.addLConstr(h[j] == fun, name=str(self.last_layer_num) + "c")
+
+        self.last_layer = h
+
+    def go_to_box(self, LB_in, UB_in, approximative, stop_t=None):
+        t_start = time.time()
+        n = len(self.last_layer)
+        UB = []
+        LB = []
+        for i in range(n):
+            if stop_t is None or stop_t > time.time():
+                UB.append(self.find_one_bound(self.last_layer[i], True, approximative))
+                LB.append(self.find_one_bound(self.last_layer[i], False, approximative))
+            else:
+                UB.append(UB_in[i])
+                LB.append(LB_in[i])
+
+        return LB, UB
+
+    def find_one_bound(self, objective, MAXIMIZE, approximative):
+        if MAXIMIZE:
+            self.model.setObjective(objective, GRB.MAXIMIZE)
+            if approximative:
+                self.model.setParam('Cutoff', 0.0)
+            else:
+                self.model.setParam('Cutoff', -GRB.INFINITY)
+        else:
+            self.model.setObjective(objective, GRB.MINIMIZE)
+            if approximative:
+                self.model.setParam('Cutoff', 0.0)
+            else:
+                self.model.setParam('Cutoff', GRB.INFINITY)
+        #  rest_time = self.T_limit - (time.time() - self.start)
+        #  if rest_time < 0:
+        #    raise TimeOut
+        #  self.model.setParam('TimeLimit', rest_time)
+        self.model.optimize()
+        if self.model.Status == GRB.OPTIMAL:
+            return objective.x
+        elif self.model.Status == GRB.CUTOFF:
+            return 0.0
+        elif self.model.Status == GRB.TIME_LIMIT:
+            raise TimeOut
+        else:
+            assert False
+
+    def verify_label(self):
+        #  this function is a performance improvement for the last layer bounds, it can prove that
+        #  all other labels than label have a strictly smaller logit value than the label.
+        #  can only be called for the last layer of the network
+        #  it gives tighter bounds than the bounds comparison.
+
+        # prepare the indices which are not the label
+        r = list(range(len(self.last_layer)))
+        del r[self.label]
+
+        self.model.setObjective(0)
+        #t = time.time()
+        #self.model.optimize()
+        #assert(self.model.Status == GRB.OPTIMAL)
+        #print("@@@@@@ time is ", time.time() -t)
+        for i in r:
+            const = self.model.addLConstr(self.last_layer[i] - self.last_layer[self.label] >= 0)
+            self.model.optimize()
+            #print("optimization status is ", self.model.Status)
+            if self.model.Status == GRB.INFEASIBLE:
+                print("logit " + str(i) + " < label logit (" + str(self.label) + ") -> label", i, " is verified")
+
+            elif self.model.Status == GRB.OPTIMAL:
+                obv = self.last_layer[i].x - self.last_layer[self.label].x
+                print("logit " + str(i) + " >= label logit (" + str(self.label) + ") -> cannot verify")
+                return False
+            else:
+                assert False
+            self.model.remove(const)
+
+        return True
 
 
 class layers:
@@ -282,7 +435,7 @@ class Oracle:
                 self.nn_layer_link.append(num)
         # print(nn.layertypes)
         # print(nn.numlayer)
-        print(self.layer_types)
+        #print(self.layer_types)
         # print(self.nn_layer_link)
 
     def get_strategy(self):
@@ -304,6 +457,19 @@ class Oracle:
 
         return temp
 
+    def get_LP_only_strategy(self):
+        return ['LP']*len(self.layer_types)
+
+    def get_buildup_time(self):
+        available_time=420
+        num_neurons_last_layer = self.nn.get_shape()[-2]
+        num_layers = len(self.nn.get_shape())
+        #print ("last layer neurons",num_neurons_last_layer)
+        if num_neurons_last_layer<=200 and num_layers<=6:
+            return available_time-10
+        if num_neurons_last_layer<=200:
+            return available_time-15
+        return available_time-23
 
 def no_time_left(start):
     T_limit = 82000.0  #seconds
@@ -325,7 +491,6 @@ def analyze(nn, LB_N0, UB_N0, label, *args):
         return get_label(nn,LB_N0), None
 
     start = time.time()
-    t_buildup = 410
     nn.ffn_counter = 0
     numlayer = nn.numlayer
     man = elina_box_manager_alloc()
@@ -333,10 +498,12 @@ def analyze(nn, LB_N0, UB_N0, label, *args):
     print("time", datetime.datetime.now().time())
     oracle = Oracle(nn)
     # strategy = oracle.get_strategy()
-    if len(args) == 0 or len(args[0]) == 0:
-        strategy = oracle.get_dynamic_strategy()
-    else:
-        strategy = args[0]
+    #if len(args) == 0 or len(args[0]) == 0:
+    #    strategy = oracle.get_dynamic_strategy()
+    #else:
+    #    strategy = args[0]
+    strategy = oracle.get_LP_only_strategy()
+    t_buildup = oracle.get_buildup_time()
     # print (strategy)
     element = bounds_to_elina_interval(man, LB_N0, UB_N0)
     myLP = net_in_LP(LB_N0, UB_N0, 0, label, start)
@@ -524,10 +691,10 @@ def verify_precomputed(netstring, specstring, eps_in):
     t = time.time()
     net_adler = cheapsum(netstring)
     img_adler = cheapsum(specstring)
-    print("adler took", time.time() - t, "seconds")
+    #print("adler took", time.time() - t, "seconds")
 
-    print("adler of net", net_adler)
-    print("adler of img", img_adler)
+    #print("adler of net", net_adler)
+    #print("adler of img", img_adler)
 
     # this lookup table is built by build_lookup_verifier.py
     # it stores the lower bounds of all nets and images
@@ -555,7 +722,7 @@ if __name__ == '__main__':
     # m.write("debug_end.lp")
 
     STRAT = [argv[i] for i in range(4, len(argv))]
-    print(STRAT)
+    #print(STRAT)
 
     netname = argv[1]
     specname = argv[2]
@@ -567,16 +734,17 @@ if __name__ == '__main__':
         specstring = specfile.read()
 
     nn = parse_net(netstring)
-    print("shape of net = " + str(nn.get_shape()))
+    #print("shape of net = " + str(nn.get_shape()))
     x0_low, x0_high = parse_spec(specstring)
     LB_N0, UB_N0 = get_perturbed_image(x0_low, 0)
 
-    verify_precomputed(netstring, specstring, epsilon)
-    label, _ = analyze(nn,LB_N0,UB_N0,0, STRAT)
+    
+    label, _ = analyze(nn,LB_N0,UB_N0,0, [])
     #own_label = get_label(nn, LB_N0)
     #label = own_label
     #  print("##############label", label, "own_label", own_label)
     start = time.time()
+    verify_precomputed(netstring, specstring, epsilon)
     if (label == int(x0_low[0])):
         LB_N0, UB_N0 = get_perturbed_image(x0_low, epsilon)
         _, verified_flag = analyze(nn, LB_N0, UB_N0, label, STRAT)
