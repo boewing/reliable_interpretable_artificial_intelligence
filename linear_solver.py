@@ -44,7 +44,7 @@ class net_in_LP:
                 if self.last_bounds_UB[k] <= 0:
                     self.last_layer[k] = self.model.addVar(lb=0, ub=0)
                 else:
-                    temp = self.model.addVar(lb=0, ub=GRB.INFINITY)
+                    temp = self.model.addVar(lb=0, ub=self.last_bounds_UB[k])
                     self.model.addLConstr(temp >= self.last_layer[k], str(self.last_layer_num) + "cc" + str(k))
                     lam = self.last_bounds_UB[k] / (self.last_bounds_UB[k] - self.last_bounds_LB[k])
                     d = -self.last_bounds_LB[k] * lam
@@ -126,28 +126,28 @@ class net_in_LP:
         # prepare the indices which are not the label
         r = list(range(len(self.last_layer)))
         del r[self.label]
+
+        self.model.setObjective(0)
+        #t = time.time()
+        #self.model.optimize()
+        #assert(self.model.Status == GRB.OPTIMAL)
+        #print("@@@@@@ time is ", time.time() -t)
         for i in r:
-            self.model.setObjective(self.last_layer[i] - self.last_layer[self.label], GRB.MAXIMIZE)
-            self.model.setParam('BestObjStop', 0.0)
-            self.model.setParam('Cutoff', 0.0)
-            # model.setParam('TimeLimit', 0.01)
+            const = self.model.addLConstr(self.last_layer[i] - self.last_layer[self.label] >= 0)
             self.model.optimize()
-            if self.model.Status == GRB.USER_OBJ_LIMIT:
-                print("label logit (" + str(self.label) + ") can be larger than logit " + str(i))
-                return False
+            #print("optimization status is ", self.model.Status)
+            if self.model.Status == GRB.INFEASIBLE:
+                print("logit " + str(i) + " < label logit (" + str(self.label) + ") -> label", i, " is verified")
+
             elif self.model.Status == GRB.OPTIMAL:
-                obj = self.model.getObjective()
-                obv = obj.getValue()
-                print("logit " + str(i) + " - label logit (" + str(self.label) + ") <= " + str(obv))
-                if obv >= 0:
-                    return False
-            elif self.model.Status == GRB.CUTOFF:
-                print("logit " + str(i) + " is strictly smaller than the label logit (" + str(self.label) + ")")
+                obv = self.last_layer[i].x - self.last_layer[self.label].x
+                print("logit " + str(i) + " >= label logit (" + str(self.label) + ") -> cannot verify")
+                return False
             else:
                 assert False
+            self.model.remove(const)
 
         return True
-
 
 
 # def add_ReLu_slow(model, last_layer, layer_num):
