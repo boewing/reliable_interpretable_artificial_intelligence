@@ -1,0 +1,51 @@
+../mnist_nets/mnist_relu_4_1024.txt ../mnist_images/img98.txt
+try epsilon of  0.017499999999999998
+time 18:43:56.231036
+the number of processes used is 12
+add affine layer to problem 0 strategy LP
+time 18:43:56.247698
+add relu layer to problem 1 strategy LP
+time 18:43:56.657927
+¦========================================================================¦
+¦========================================================================¦
+add affine layer to problem 2 strategy LP
+time 18:45:12.080018
+add relu layer to problem 3 strategy LP
+time 18:45:12.653388
+¦========================================================================¦
+¦========================================================================¦
+add affine layer to problem 4 strategy LP
+time 19:12:06.485081
+add relu layer to problem 5 strategy LP
+time 19:12:07.015686
+¦========================================================================¦
+¦========================================================================¦
+add affine layer to problem 6 strategy LP
+time 05:28:35.362821
+time 05:28:35.367860
+logit 0 - label logit (6) <= 23.582028966730935
+can not be verified
+analysis time:  38711.192277908325  seconds
+epsilon is in:
+[0.005, 0.017499999999999998]
+try epsilon of  0.01125
+time 05:29:17.190183
+the number of processes used is 12
+add affine layer to problem 0 strategy LP
+time 05:29:17.192727
+add relu layer to problem 1 strategy LP
+time 05:29:17.552298
+¦========================================================================¦
+¦========================================================================¦
+add affine layer to problem 2 strategy LP
+time 05:30:24.050062
+add relu layer to problem 3 strategy LP
+time 05:30:24.545472
+¦========================================================================¦
+¦========================================================================¦
+add affine layer to problem 4 strategy LP
+time 05:42:02.875695
+add relu layer to problem 5 strategy LP
+time 05:42:03.370526
+¦========================================================================¦
+¦============================================================

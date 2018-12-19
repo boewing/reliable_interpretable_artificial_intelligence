@@ -1,0 +1,181 @@
+../mnist_nets/mnist_relu_4_1024.txt ../mnist_images/img85.txt
+try epsilon of  0.017499999999999998
+time 09:58:49.067848
+the number of processes used is 8
+add affine layer to problem 0 strategy LP
+time 09:58:49.092606
+add relu layer to problem 1 strategy LP
+time 09:58:49.516054
+¦========================================================================¦
+¦========================================================================¦
+add affine layer to problem 2 strategy LP
+time 10:00:02.646053
+add relu layer to problem 3 strategy LP
+time 10:00:03.235493
+¦========================================================================¦
+¦========================================================================¦
+add affine layer to problem 4 strategy LP
+time 10:16:12.546156
+add relu layer to problem 5 strategy LP
+time 10:16:13.133592
+¦========================================================================¦
+¦========================================================================¦
+add affine layer to problem 6 strategy LP
+time 17:46:15.386988
+time 17:46:15.393222
+logit 0 is strictly smaller than the label logit (4)
+logit 1 is strictly smaller than the label logit (4)
+logit 2 is strictly smaller than the label logit (4)
+logit 3 - label logit (4) <= 4.081440925103095
+can not be verified
+analysis time:  28101.77996945381  seconds
+epsilon is in:
+[0.005, 0.017499999999999998]
+try epsilon of  0.01125
+time 17:47:23.154188
+the number of processes used is 8
+add affine layer to problem 0 strategy LP
+time 17:47:23.157602
+add relu layer to problem 1 strategy LP
+time 17:47:23.582752
+¦========================================================================¦
+¦========================================================================¦
+add affine layer to problem 2 strategy LP
+time 17:48:36.377690
+add relu layer to problem 3 strategy LP
+time 17:48:36.967550
+¦========================================================================¦
+¦========================================================================¦
+add affine layer to problem 4 strategy LP
+time 18:01:21.608114
+add relu layer to problem 5 strategy LP
+time 18:01:22.203034
+¦========================================================================¦
+¦========================================================================¦
+add affine layer to problem 6 strategy LP
+time 21:20:41.629411
+time 21:20:41.635889
+logit 0 is strictly smaller than the label logit (4)
+logit 1 is strictly smaller than the label logit (4)
+logit 2 is strictly smaller than the label logit (4)
+logit 3 is strictly smaller than the label logit (4)
+logit 5 is strictly smaller than the label logit (4)
+logit 6 is strictly smaller than the label logit (4)
+logit 7 is strictly smaller than the label logit (4)
+logit 8 is strictly smaller than the label logit (4)
+logit 9 is strictly smaller than the label logit (4)
+verified
+analysis time:  12813.666474342346  seconds
+epsilon is in:
+[0.01125, 0.017499999999999998]
+try epsilon of  0.014374999999999999
+time 21:21:08.927298
+the number of processes used is 8
+add affine layer to problem 0 strategy LP
+time 21:21:08.930421
+add relu layer to problem 1 strategy LP
+time 21:21:09.373578
+¦========================================================================¦
+¦========================================================================¦
+add affine layer to problem 2 strategy LP
+time 21:22:26.080301
+add relu layer to problem 3 strategy LP
+time 21:22:26.694079
+¦========================================================================¦
+¦========================================================================¦
+add affine layer to problem 4 strategy LP
+time 21:38:07.641042
+add relu layer to problem 5 strategy LP
+time 21:38:08.234321
+¦========================================================================¦
+¦========================================================================¦
+add affine layer to problem 6 strategy LP
+time 02:56:04.827579
+time 02:56:04.834359
+logit 0 is strictly smaller than the label logit (4)
+logit 1 is strictly smaller than the label logit (4)
+logit 2 is strictly smaller than the label logit (4)
+logit 3 is strictly smaller than the label logit (4)
+logit 5 is strictly smaller than the label logit (4)
+logit 6 is strictly smaller than the label logit (4)
+logit 7 is strictly smaller than the label logit (4)
+logit 8 is strictly smaller than the label logit (4)
+logit 9 - label logit (4) <= 1.4462104027420608
+can not be verified
+analysis time:  20198.46994495392  seconds
+epsilon is in:
+[0.01125, 0.014374999999999999]
+try epsilon of  0.0128125
+time 02:57:59.145823
+the number of processes used is 8
+add affine layer to problem 0 strategy LP
+time 02:57:59.148773
+add relu layer to problem 1 strategy LP
+time 02:57:59.584123
+¦========================================================================¦
+¦========================================================================¦
+add affine layer to problem 2 strategy LP
+time 02:59:13.339158
+add relu layer to problem 3 strategy LP
+time 02:59:13.934259
+¦========================================================================¦
+¦========================================================================¦
+add affine layer to problem 4 strategy LP
+time 03:12:53.701516
+add relu layer to problem 5 strategy LP
+time 03:12:54.296176
+¦========================================================================¦
+¦========================================================================¦
+add affine layer to problem 6 strategy LP
+time 07:23:29.793812
+time 07:23:29.800272
+logit 0 is strictly smaller than the label logit (4)
+logit 1 is strictly smaller than the label logit (4)
+logit 2 is strictly smaller than the label logit (4)
+logit 3 is strictly smaller than the label logit (4)
+logit 5 is strictly smaller than the label logit (4)
+logit 6 is strictly smaller than the label logit (4)
+logit 7 is strictly smaller than the label logit (4)
+logit 8 is strictly smaller than the label logit (4)
+logit 9 is strictly smaller than the label logit (4)
+verified
+analysis time:  15954.287077188492  seconds
+epsilon is in:
+[0.0128125, 0.014374999999999999]
+try epsilon of  0.013593749999999998
+time 07:24:05.543874
+the number of processes used is 8
+add affine layer to problem 0 strategy LP
+time 07:24:05.547043
+add relu layer to problem 1 strategy LP
+time 07:24:05.983676
+¦========================================================================¦
+¦========================================================================¦
+add affine layer to problem 2 strategy LP
+time 07:25:22.054170
+add relu layer to problem 3 strategy LP
+time 07:25:22.667078
+¦========================================================================¦
+¦========================================================================¦
+add affine layer to problem 4 strategy LP
+time 07:40:40.267838
+add relu layer to problem 5 strategy LP
+time 07:40:40.861458
+¦========================================================================¦
+¦========================================================================¦
+add affine layer to problem 6 strategy LP
+time 12:33:38.163078
+time 12:33:38.169495
+logit 0 is strictly smaller than the label logit (4)
+logit 1 is strictly smaller than the label logit (4)
+logit 2 is strictly smaller than the label logit (4)
+logit 3 is strictly smaller than the label logit (4)
+logit 5 is strictly smaller than the label logit (4)
+logit 6 is strictly smaller than the label logit (4)
+logit 7 is strictly smaller than the label logit (4)
+logit 8 is strictly smaller than the label logit (4)
+logit 9 is strictly smaller than the label logit (4)
+verified
+analysis time:  18604.626606941223  seconds
+epsilon is in:
+[0.013593749999999998, 0.014374999999999999]

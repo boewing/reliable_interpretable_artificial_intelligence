@@ -1,0 +1,52 @@
+../mnist_nets/mnist_relu_4_1024.txt ../mnist_images/img46.txt
+try epsilon of  0.017499999999999998
+time 19:07:51.279140
+the number of processes used is 12
+add affine layer to problem 0 strategy LP
+time 19:07:51.294714
+add relu layer to problem 1 strategy LP
+time 19:07:51.673909
+¦========================================================================¦
+¦========================================================================¦
+add affine layer to problem 2 strategy LP
+time 19:09:01.030423
+add relu layer to problem 3 strategy LP
+time 19:09:01.562881
+¦========================================================================¦
+¦========================================================================¦
+add affine layer to problem 4 strategy LP
+time 19:31:01.527160
+add relu layer to problem 5 strategy LP
+time 19:31:02.032893
+¦========================================================================¦
+¦========================================================================¦
+add affine layer to problem 6 strategy LP
+time 05:25:34.402700
+time 05:25:34.407826
+logit 0 is strictly smaller than the label logit (1)
+logit 2 - label logit (1) <= 12.791095451760611
+can not be verified
+analysis time:  37115.051444768906  seconds
+epsilon is in:
+[0.005, 0.017499999999999998]
+try epsilon of  0.01125
+time 05:26:36.057331
+the number of processes used is 12
+add affine layer to problem 0 strategy LP
+time 05:26:36.060343
+add relu layer to problem 1 strategy LP
+time 05:26:36.416800
+¦========================================================================¦
+¦========================================================================¦
+add affine layer to problem 2 strategy LP
+time 05:27:42.408486
+add relu layer to problem 3 strategy LP
+time 05:27:42.903583
+¦========================================================================¦
+¦========================================================================¦
+add affine layer to problem 4 strategy LP
+time 05:39:26.474235
+add relu layer to problem 5 strategy LP
+time 05:39:26.958741
+¦========================================================================¦
+¦==================================================

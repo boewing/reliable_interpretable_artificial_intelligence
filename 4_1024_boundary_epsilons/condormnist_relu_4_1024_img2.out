@@ -1,0 +1,22 @@
+../mnist_nets/mnist_relu_4_1024.txt ../mnist_images/img2.txt
+try epsilon of  0.017499999999999998
+time 22:01:01.284042
+the number of processes used is 12
+add affine layer to problem 0 strategy LP
+time 22:01:01.301817
+add relu layer to problem 1 strategy LP
+time 22:01:01.679962
+¦========================================================================¦
+¦========================================================================¦
+add affine layer to problem 2 strategy LP
+time 22:02:12.097791
+add relu layer to problem 3 strategy LP
+time 22:02:12.622242
+¦========================================================================¦
+¦========================================================================¦
+add affine layer to problem 4 strategy LP
+time 22:30:17.814044
+add relu layer to problem 5 strategy LP
+time 22:30:18.313615
+¦========================================================================¦
+¦============

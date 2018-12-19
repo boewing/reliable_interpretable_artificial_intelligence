@@ -1,0 +1,52 @@
+../mnist_nets/mnist_relu_4_1024.txt ../mnist_images/img39.txt
+try epsilon of  0.017499999999999998
+time 03:26:19.650746
+the number of processes used is 8
+add affine layer to problem 0 strategy LP
+time 03:26:19.670052
+add relu layer to problem 1 strategy LP
+time 03:26:20.071060
+¦========================================================================¦
+¦========================================================================¦
+add affine layer to problem 2 strategy LP
+time 03:27:30.060189
+add relu layer to problem 3 strategy LP
+time 03:27:30.629588
+¦========================================================================¦
+¦========================================================================¦
+add affine layer to problem 4 strategy LP
+time 03:48:26.999047
+add relu layer to problem 5 strategy LP
+time 03:48:27.568183
+¦========================================================================¦
+¦========================================================================¦
+add affine layer to problem 6 strategy LP
+time 14:38:27.875026
+time 14:38:27.880797
+logit 0 is strictly smaller than the label logit (1)
+logit 2 - label logit (1) <= 2.207295616933365
+can not be verified
+analysis time:  40368.39338994026  seconds
+epsilon is in:
+[0.005, 0.017499999999999998]
+try epsilon of  0.01125
+time 14:39:19.264682
+the number of processes used is 8
+add affine layer to problem 0 strategy LP
+time 14:39:19.267574
+add relu layer to problem 1 strategy LP
+time 14:39:19.669997
+¦========================================================================¦
+¦========================================================================¦
+add affine layer to problem 2 strategy LP
+time 14:40:30.157887
+add relu layer to problem 3 strategy LP
+time 14:40:30.718484
+¦========================================================================¦
+¦========================================================================¦
+add affine layer to problem 4 strategy LP
+time 14:54:31.255258
+add relu layer to problem 5 strategy LP
+time 14:54:31.815207
+¦========================================================================¦
+¦===============================
